@@ -4,6 +4,7 @@
 ## k번째 층에서는 k번째 주사위의 포함 여부를 결정
 ## 각 주사위를 선택했을 때의 경우의 수는 dp처럼 결과를 저장, dict 형태로
 
+## n = 2인 경우도 코드 작성 필요
 def solution(dice_list):
     n = len(dice_list)
     bfs_list = [[[0], (n / 2) - 1, get_dict_after_accept_new_dice({}, dice_list[0]), 0], [[], n / 2, {}, 0]]
@@ -13,42 +14,43 @@ def solution(dice_list):
     ## Fourth Element : Layer Depth
     
     winning_record = 0
-    winning_combinaion = []
+    winning_combination = []
     
     while bfs_list:
         candidate = bfs_list.pop(0)
         depth = candidate[-1] + 1
         
-        if depth >= 10:
+        if depth >= n or candidate[1] == 0:
             continue
+            
+        ##First : Deny Dice
+        new_candidate = copy_list(candidate)
+        
+        remain_dice = len(dice_list) - depth - 1
+        if remain_dice < new_candidate[1]:
+            continue
+        new_candidate[3] = depth + 1
+        
+        bfs_list.append(new_candidate)
+        
 
-        ##First : Accept Dice
+        ##Second : Accept Dice
         new_candidate = copy_list(candidate)
         
         new_candidate[0].append(depth)
         new_candidate[1] -= 1
         new_candidate[2] = get_dict_after_accept_new_dice(new_candidate[2], dice_list[depth])
-        new_candidate[3] = depth
+        new_candidate[3] = depth + 1
         
         if new_candidate[1] == 0:
             winning_cases = get_winning_cases(new_candidate[0], new_candidate[2], dice_list)
-            
+
             if winning_cases > winning_record:
                 winning_record = winning_cases
                 winning_combination = new_candidate[0]
         else:
             bfs_list.append(new_candidate)
-            
-            
-        ##Second : Deny Dice
-        new_candidate = copy_list(candidate)
         
-        remain_dice = 9 - depth
-        if remain_dice < new_candidate[1]:
-            continue
-        new_candidate[3] = depth
-        
-        bfs_list.append(new_candidate)
         
     return winning_combination
         
@@ -129,15 +131,16 @@ def copy_list(original_list):
     
     return copied_list
 
-def get_winning_cases(selected_dice_list : list, dice_result_cases : dict, dice_list : list):
-    unselected_dice_list = list(set(range(0, 10)) - set(selected_dice_list))
+def get_winning_cases(selected_dice_list : list, dice_result_cases : dict, dice_list : list): ##이 부분에서 에러 발생
+    unselected_dice_list = list(set(range(0, len(dice_list))) - set(selected_dice_list))
     unselected_dice_result_cases = {}
     
-    for i in range(len(unselected_dice_list)): ## 이 부분
+
+    for i in range(int(len(dice_list) / 2)):
         unselected_dice_result_cases = get_dict_after_accept_new_dice(unselected_dice_result_cases, dice_list[unselected_dice_list[i]])
-        
+
     winning_cases = compare_two_results(dice_result_cases, unselected_dice_result_cases)
-    
+
     return winning_cases
 
 def compare_two_results(result_dict1 : dict, result_dict2 : dict):
