@@ -5,8 +5,21 @@
 ## 각 주사위를 선택했을 때의 경우의 수는 dp처럼 결과를 저장, dict 형태로
 
 ## n = 2인 경우도 코드 작성 필요
+import copy
+
 def solution(dice_list):
     n = len(dice_list)
+    
+    if n == 2:
+        first_dice_result = get_dict_from_single_dice(dice_list[0])
+        second_dice_result = get_dict_from_single_dice(dice_list[1])
+        
+        result1 = compare_two_results(first_dice_result, second_dice_result)
+        result2 = compare_two_results(second_dice_result, first_dice_result)
+        
+        if result1 > result2:
+            return [1]
+        return [2]
     bfs_list = [[[0], (n / 2) - 1, get_dict_after_accept_new_dice({}, dice_list[0]), 0], [[], n / 2, {}, 0]]
     ## First Element : List of the dices we chose
     ## Second Element : Number of dices we have to bring
@@ -22,25 +35,15 @@ def solution(dice_list):
         
         if depth >= n or candidate[1] == 0:
             continue
-            
-        ##First : Deny Dice
-        new_candidate = copy_list(candidate)
-        
-        remain_dice = len(dice_list) - depth - 1
-        if remain_dice < new_candidate[1]:
-            continue
-        new_candidate[3] = depth + 1
-        
-        bfs_list.append(new_candidate)
         
 
-        ##Second : Accept Dice
-        new_candidate = copy_list(candidate)
+        ##First : Accept Dice
+        new_candidate = copy.deepcopy(candidate)
         
         new_candidate[0].append(depth)
         new_candidate[1] -= 1
         new_candidate[2] = get_dict_after_accept_new_dice(new_candidate[2], dice_list[depth])
-        new_candidate[3] = depth + 1
+        new_candidate[3] = depth
         
         if new_candidate[1] == 0:
             winning_cases = get_winning_cases(new_candidate[0], new_candidate[2], dice_list)
@@ -50,14 +53,20 @@ def solution(dice_list):
                 winning_combination = new_candidate[0]
         else:
             bfs_list.append(new_candidate)
+
+            
+        ##Second : Deny Dice
+        new_candidate = copy.deepcopy(candidate)
+        
+        remain_dice = len(dice_list) - depth - 1
+        if remain_dice < new_candidate[1]:
+            continue
+        new_candidate[3] = depth
+        
+        bfs_list.append(new_candidate)
         
         
-    return winning_combination
-        
-        
-        
-    answer = []
-    return answer
+    return [x + 1 for x in winning_combination]
 
 def get_dict_after_accept_new_dice(previous_dict : dict, new_dice : list):
     dict_list = []
@@ -122,14 +131,6 @@ def get_dict_from_single_dice(dice : list):
             dice_dict[number] += 1
             
     return dice_dict
-
-def copy_list(original_list):
-    copied_list = []
-    
-    for i in range(len(original_list)):
-        copied_list.append(original_list[i])
-    
-    return copied_list
 
 def get_winning_cases(selected_dice_list : list, dice_result_cases : dict, dice_list : list): ##이 부분에서 에러 발생
     unselected_dice_list = list(set(range(0, len(dice_list))) - set(selected_dice_list))
