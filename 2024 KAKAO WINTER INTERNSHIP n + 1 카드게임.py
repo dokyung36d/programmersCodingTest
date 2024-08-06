@@ -17,7 +17,7 @@ def get_results(cards_in_hands : list, remain_cards : list, remain_coin : int, r
     maximum_round_candidate_list = []
 
     if len(remain_cards) < 2: ## 더 이상 뽑을 카드가 없는 경우
-        return round
+        return round  #실행되어야 하는데 실행되지 않음 in test case
     
     pick_cards = remain_cards[:2]
     remain_cards = remain_cards[2:]
@@ -33,6 +33,7 @@ def get_results(cards_in_hands : list, remain_cards : list, remain_coin : int, r
     else:
         copied_cards_in_hands.pop(pick_result[1])
         copied_cards_in_hands.pop(pick_result[0])
+        
         result = get_results(cards_in_hands = copied_cards_in_hands, remain_cards = remain_cards,
                           remain_coin = remain_coin, round = round + 1, n = n)
         maximum_round_candidate_list.append(result)
@@ -47,33 +48,30 @@ def get_results(cards_in_hands : list, remain_cards : list, remain_coin : int, r
     
     copied_cards_in_hands.append(pick_cards[0])
     pick_result = pick_two_cards_to_n_plus_one(card_list = copied_cards_in_hands, target_number = n)
+    
     if pick_result == False or len(copied_cards_in_hands) < 1:
         maximum_round_candidate_list.append(round)
         
     else:
-        try:
-            copied_cards_in_hands.pop(pick_result[1])
-            copied_cards_in_hands.pop(pick_result[0])
-            result = get_results(cards_in_hands = copied_cards_in_hands, remain_cards = remain_cards,
-                              remain_coin = remain_coin - 1, round = round + 1, n = n)
-            maximum_round_candidate_list.append(round)
-        except Exception as e:
-            return copied_cards_in_hands, pick_result
+        copied_cards_in_hands.pop(pick_result[1])
+        copied_cards_in_hands.pop(pick_result[0])
+        result = get_results(cards_in_hands = copied_cards_in_hands, remain_cards = remain_cards,
+                          remain_coin = remain_coin - 1, round = round + 1, n = n)
+        maximum_round_candidate_list.append(result)
     
     
-    copied_cards_in_hands[-1] = pick_cards[1]
+    copied_cards_in_hands = copy.deepcopy(cards_in_hands)
+    copied_cards_in_hands.append(pick_cards[1])
+    
     pick_result = pick_two_cards_to_n_plus_one(card_list = copied_cards_in_hands, target_number = n)
-    if pick_result == False:
+    if pick_result == False or len(copied_cards_in_hands) < 1:
         maximum_round_candidate_list.append(round)
     else:
-        try:
-            copied_cards_in_hands.pop(pick_result[1])
-            copied_cards_in_hands.pop(pick_result[0])
-            result = get_results(cards_in_hands = copied_cards_in_hands, remain_cards = remain_cards,
-                              remain_coin = remain_coin - 1, round = round + 1, n = n)
-            maximum_round_candidate_list.append(round)
-        except Exception as e:
-            return copied_cards_in_hands, pick_result
+        copied_cards_in_hands.pop(pick_result[1])
+        copied_cards_in_hands.pop(pick_result[0])
+        result = get_results(cards_in_hands = copied_cards_in_hands, remain_cards = remain_cards,
+                          remain_coin = remain_coin - 1, round = round + 1, n = n)
+        maximum_round_candidate_list.append(result)
     
     
     copied_cards_in_hands = copy.deepcopy(cards_in_hands)
