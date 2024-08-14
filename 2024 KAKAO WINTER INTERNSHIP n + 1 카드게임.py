@@ -10,103 +10,62 @@ def solution(coin, cards):
     n = len(cards)
     
     cards_in_hand = cards[:int(n / 3)]
-    remain_cards = cards[int(n / 3):]
+    remain_cards = cards[int(n / 3) + 2:]
     
-    result = get_results(cards_in_hand, remain_cards, remain_coin = coin, round = 1, n = n + 1)
+    result = get_results(cards_in_hand, remain_cards, pick_candidate_card_list = cards[int(n / 3):int(n / 3) + 2], remain_coin = coin, round = 1, n = n + 1)
     
     return result
 
 max_record = 0
 
-def get_results(cards_in_hands : list, remain_cards : list, remain_coin : int, round : int, n : int):
-    global max_record
-    maximum_round_candidate_list = []
-    
-    if (len(cards_in_hands) + remain_coin) / 2 + round < max_record: ##모든 경우의 수라도 최고의 경우를 못 넘는 경우
+def get_results(cards_in_hands : list, remain_cards : list, pick_candidate_card_list : list, remain_coin : int, round : int, n : int):
+    if len(remain_cards) < 2:
         return round
-
-    if len(remain_cards) < 2: ## 더 이상 뽑을 카드가 없는 경우
-        return round  #실행되어야 하는데 실행되지 않음 in test case
     
-    pick_cards = remain_cards[:2]
-    remain_cards = remain_cards[2:]
     
-    copied_cards_in_hands = copy.deepcopy(cards_in_hands)
-    copied_remain_cards = copy.deepcopy(remain_cards)
+    result_in_hand_cards = pick_two_cards_to_n_plus_one(card_list = cards_in_hands, target_number = n)
     
-    ## 두 장 모두 버리는 경우, 코인을 소모하지 않는 경우
-    pick_result = pick_two_cards_to_n_plus_one(card_list = copied_cards_in_hands, target_number = n)
-
-    if pick_result == False or len(copied_cards_in_hands) < 2:
-        maximum_round_candidate_list.append(round)
-    else:
-        copied_cards_in_hands.pop(pick_result[1])
-        copied_cards_in_hands.pop(pick_result[0])
+    if result_in_hand_cards: ##손에 있는 카드로만으로도 n + 1이 가능한 경우
+        del cards_in_hands[result_in_hand_cards[1]]
+        del cards_in_hands[result_in_hand_cards[0]]
         
-        result = get_results(cards_in_hands = copied_cards_in_hands, remain_cards = remain_cards,
-                          remain_coin = remain_coin, round = round + 1, n = n)
-        maximum_round_candidate_list.append(result)
+        pick_candidate_card_list.extend(remain_cards[:2])
+        remain_cards = remain_cards[2:]
         
+        return get_results(cards_in_hands, remain_cards, pick_candidate_card_list, remain_coin, round + 1, n)
+    
+    
+    if remain_coin < 1: ##카드를 더 이상 후보에서 뽑을 수 없는 경우
+        return round
+    
+    
+    result_pair_in_hand_and_candidate = pick_pair_from_two_list(cards_in_hands, pick_candidate_card_list, target_number = n)
+    
+    if result_pair_in_hand_and_candidate:
+        del cards_in_hands[result_pair_in_hand_and_candidate[0]]
+        del pick_candidate_card_list[result_pair_in_hand_and_candidate[1]]
         
-    copied_cards_in_hands = copy.deepcopy(cards_in_hands)
-    copied_remain_cards = copy.deepcopy(remain_cards)
-    
-    ## 카드를 한 장만 수용하는 경우
-    if remain_coin < 1:
-        return max(maximum_round_candidate_list)
-    
-    copied_cards_in_hands.append(pick_cards[0])
-    pick_result = pick_two_cards_to_n_plus_one(card_list = copied_cards_in_hands, target_number = n)
-    
-    if pick_result == False or len(copied_cards_in_hands) < 1:
-        maximum_round_candidate_list.append(round)
+        pick_candidate_card_list.extend(remain_cards[:2])
+        remain_cards = remain_cards[2:]
         
-    else:
-        copied_cards_in_hands.pop(pick_result[1])
-        copied_cards_in_hands.pop(pick_result[0])
-        result = get_results(cards_in_hands = copied_cards_in_hands, remain_cards = remain_cards,
-                          remain_coin = remain_coin - 1, round = round + 1, n = n)
-        maximum_round_candidate_list.append(result)
+        return get_results(cards_in_hands, remain_cards, pick_candidate_card_list, remain_coin - 1, round + 1, n)
+    
+    if remain_coin < 2: ##후보에서 pair를 만들 수 없는 경우
+        return round
     
     
-    copied_cards_in_hands = copy.deepcopy(cards_in_hands)
-    copied_cards_in_hands.append(pick_cards[1])
+    result_pair_in_candidate_list = pick_two_cards_to_n_plus_one(pick_candidate_card_list, target_number = n)
     
-    pick_result = pick_two_cards_to_n_plus_one(card_list = copied_cards_in_hands, target_number = n)
-    if pick_result == False or len(copied_cards_in_hands) < 1:
-        maximum_round_candidate_list.append(round)
-    else:
-        copied_cards_in_hands.pop(pick_result[1])
-        copied_cards_in_hands.pop(pick_result[0])
-        result = get_results(cards_in_hands = copied_cards_in_hands, remain_cards = remain_cards,
-                          remain_coin = remain_coin - 1, round = round + 1, n = n)
-        maximum_round_candidate_list.append(result)
+    if result_pair_in_candidate_list:
+        del pick_candidate_card_list[result_pair_in_candidate_list[1]]
+        del pick_candidate_card_list[result_pair_in_candidate_list[0]]
     
-    
-    copied_cards_in_hands = copy.deepcopy(cards_in_hands)
-    copied_remain_cards = copy.deepcopy(remain_cards)
-    
-    ## 카드를 2장 모두 수용하는 경우(= 코인을 2개 소모하는 경우)
-    if remain_coin < 2:
-        return max(maximum_round_candidate_list)
-    
-    copied_cards_in_hands.extend(pick_cards)
-    pick_result = pick_two_cards_to_n_plus_one(card_list = copied_cards_in_hands, target_number = n)
-    if pick_result == False:
-        maximum_round_candidate_list.append(round)
-    else:
-        copied_cards_in_hands.pop(pick_result[1])
-        copied_cards_in_hands.pop(pick_result[0])
-        result = get_results(cards_in_hands = copied_cards_in_hands, remain_cards = remain_cards,
-                          remain_coin = remain_coin - 2, round = round + 1, n = n)
-        maximum_round_candidate_list.append(result)
+        pick_candidate_card_list.extend(remain_cards[:2])
+        remain_cards = remain_cards[2:]
         
-    max_round = max(maximum_round_candidate_list)
+        return get_results(cards_in_hands, remain_cards, pick_candidate_card_list, remain_coin - 2, round + 1, n)
     
-    if max_round > max_record:
-        max_record = max_round
-        
-    return max_round
+    return round ##모든 경우에서 pair를 찾지 못한 경우
         
         
 def pick_two_cards_to_n_plus_one(card_list : list, target_number : int):
@@ -118,12 +77,9 @@ def pick_two_cards_to_n_plus_one(card_list : list, target_number : int):
     
     return False
 
-def pick_multi_two_cards_to_n_plus_one(card_list : list, target_number : int):
-    combination_list = []
-    for i in range(len(card_list) - 1):
-        target_remain = target_number - card_list[i]
-        
-        if target_remain in card_list[i + 1:]:
-            combination_list.append([i, card_list.index(target_remain)])
+def pick_pair_from_two_list(list1 : list, list2 : list, target_number : int):
+    for pair in list(itertools.product(list1, list2)):
+        if pair[0] + pair[1] == target_number:
+            return [list1.index(pair[0]), list2.index(pair[1])]
     
-    return combination_list
+    return False
