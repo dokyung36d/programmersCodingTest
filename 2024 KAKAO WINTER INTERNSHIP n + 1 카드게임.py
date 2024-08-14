@@ -10,18 +10,20 @@ def solution(coin, cards):
     n = len(cards)
     
     cards_in_hand = cards[:int(n / 3)]
-    remain_cards = cards[int(n / 3) + 2:]
+    remain_cards = cards[int(n / 3):]
     
-    result = get_results(cards_in_hand, remain_cards, pick_candidate_card_list = cards[int(n / 3):int(n / 3) + 2], remain_coin = coin, round = 1, n = n + 1)
+    result = get_results(cards_in_hand, remain_cards, pick_candidate_card_list = [], remain_coin = coin, round = 1, n = n + 1)
     
     return result
 
 max_record = 0
 
 def get_results(cards_in_hands : list, remain_cards : list, pick_candidate_card_list : list, remain_coin : int, round : int, n : int):
-    if len(remain_cards) < 2:
+    if len(remain_cards) < 2: ##여기에서 문제 발생
         return round
     
+    pick_candidate_card_list.extend(remain_cards[:2])
+    remain_cards = remain_cards[2:]
     
     result_in_hand_cards = pick_two_cards_to_n_plus_one(card_list = cards_in_hands, target_number = n)
     
@@ -29,8 +31,6 @@ def get_results(cards_in_hands : list, remain_cards : list, pick_candidate_card_
         del cards_in_hands[result_in_hand_cards[1]]
         del cards_in_hands[result_in_hand_cards[0]]
         
-        pick_candidate_card_list.extend(remain_cards[:2])
-        remain_cards = remain_cards[2:]
         
         return get_results(cards_in_hands, remain_cards, pick_candidate_card_list, remain_coin, round + 1, n)
     
@@ -45,8 +45,6 @@ def get_results(cards_in_hands : list, remain_cards : list, pick_candidate_card_
         del cards_in_hands[result_pair_in_hand_and_candidate[0]]
         del pick_candidate_card_list[result_pair_in_hand_and_candidate[1]]
         
-        pick_candidate_card_list.extend(remain_cards[:2])
-        remain_cards = remain_cards[2:]
         
         return get_results(cards_in_hands, remain_cards, pick_candidate_card_list, remain_coin - 1, round + 1, n)
     
@@ -60,8 +58,6 @@ def get_results(cards_in_hands : list, remain_cards : list, pick_candidate_card_
         del pick_candidate_card_list[result_pair_in_candidate_list[1]]
         del pick_candidate_card_list[result_pair_in_candidate_list[0]]
     
-        pick_candidate_card_list.extend(remain_cards[:2])
-        remain_cards = remain_cards[2:]
         
         return get_results(cards_in_hands, remain_cards, pick_candidate_card_list, remain_coin - 2, round + 1, n)
     
