@@ -2,7 +2,6 @@
 ## 총 경우의 수 : 4^7
 ## 1차 목표 : 가입자 늘리는 것 -> 일단 많이 구매 -> 할인율 높이기
 ## -> dfs로 진행하면 좋을 듯
-## 일정 숫자 이상 이모티콘 안사면 바로 pruning
 import copy
 import sys
 sys.setrecursionlimit(10**6)
@@ -15,18 +14,21 @@ def solution(users, emoticons):
 
 def dfs(users, emoticons, discount_list : list, depth : int, max_num_new_member = 0, max_total_pay = 0): ##depth는 0에서부터 시작
     if depth == len(emoticons):
-        result = get_result(users, emoticons, discount_list)
+        assert len(emoticons) == len(discount_list)
         
-        if result[0] < max_num_new_member:
-            pass
-            # return (max_num_new_number, max_total_pay)
+        result = get_result(users, emoticons, discount_list)
+            
+        if result[0] > max_num_new_member:
+            max_num_new_member = result[0]
+            max_total_pay = result[1]
+            return (max_num_new_member, max_total_pay)
         
         elif result[0] == max_num_new_member and result[1] > max_total_pay:
             max_total_pay = result[1]
-            
-        elif result[0] > max_num_new_member:
-            max_num_new_member = result[0]
-            max_total_pay = result[1]
+            return (max_num_new_member, max_total_pay)
+        
+        else:
+            return (max_num_new_member, max_total_pay)
             
     discount_rate_list = [40, 30, 20, 10]
     
@@ -70,7 +72,7 @@ def determine_buy_or_not(user, emoticons, discount_list : list):
         if discount_list[i] < user[0]:
             continue
             
-        pay += (emoticons[i] * (discount_list[i] / 100))
+        pay += (emoticons[i] * (1 - discount_list[i] / 100))
         
     if pay >= user[1]:
         become_new_member = True
