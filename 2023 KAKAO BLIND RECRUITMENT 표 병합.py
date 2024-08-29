@@ -5,19 +5,19 @@
 import copy
 
 def solution(commands):
-    value_table = [[0 for _ in range(50)] for _ in range(50)]
+    value_table = [[-1 for _ in range(50)] for _ in range(50)]
     merge_table = [[[(j, i)] for i in range(50)] for j in range(50)]
     
     return_list = []
     
     for command in commands:
-        # value_table, merge_table = process_instruction(command, value_table, merge_table, return_list)
+        value_table, merge_table = process_instruction(command, value_table, merge_table, return_list)
         
-        try:
-            value_table, merge_table = process_instruction(command, value_table, merge_table, return_list)
+#         try:
+#             value_table, merge_table = process_instruction(command, value_table, merge_table, return_list)
         
-        except Exception as E:
-            return str(E)
+#         except Exception as E:
+#             return str(E)
     return return_list
 
 def process_instruction(command, value_table, merge_table, return_list):
@@ -57,8 +57,6 @@ def process_instruction(command, value_table, merge_table, return_list):
         return_list.append(result)
         
         return value_table, merge_table
-    
-    return command_tuple
 
 def update_by_location(value_table, merge_table, indices : tuple, value):
 #     if merge_table[indices[0]][indices[1]] == [indices]:
@@ -91,7 +89,7 @@ def merge(value_table, merge_table, indices_1, indices_2):
         
     merge = merge_table[indices_1[0]][indices_1[1]]
     
-    if value_table[indices_1[0]][indices_1[1]] == 0 and value_table[indices_2[0]][indices_2[1]] == 0: ##태초의 상태
+    if value_table[indices_1[0]][indices_1[1]] == -1 and value_table[indices_2[0]][indices_2[1]] == -1: ##태초의 상태
 #         if len(merge_table[indices_1[0]][indices_1[1]]) == 1 and len(merge_table[indices_2[0]][indices_2[1]]) == 0:
 #             merge_table[indices_1[0]][indices_1[1]] = [indices_1, indices_2]
 #             merge_table[indices_2[0]][indices_2[1]] = [indices_1, indices_2]
@@ -115,7 +113,7 @@ def merge(value_table, merge_table, indices_1, indices_2):
         
         return value_table, merge_table
     
-    if value_table[indices_1[0]][indices_1[1]] == 0 and value_table[indices_2[0]][indices_2[1]] != 0:
+    if value_table[indices_1[0]][indices_1[1]] == -1 and value_table[indices_2[0]][indices_2[1]] != -1:
         # if len(merge_table[indices_1[0]][indices_1[1]]) == 1:
         #     merge_table[indices_2[0]][indices_2[1]].append(indices_1)
         # else:
@@ -130,7 +128,7 @@ def merge(value_table, merge_table, indices_1, indices_2):
         
         return value_table, merge_table
     
-    if value_table[indices_1[0]][indices_1[1]] != 0:
+    if value_table[indices_1[0]][indices_1[1]] != -1:
         # if len(merge_table[indices_2[0]][indices_2[1]]) == 1:
         #     merge_table[indices_1[0]][indices_1[1]].append(indices_2)
         # else:
@@ -164,7 +162,7 @@ def unmerge(value_table, merge_table, indices):
         return value_table, merge_table
     
     for merged_sell in merged_sells:
-        value_table[merged_sell[0]][merged_sell[1]] = 0
+        value_table[merged_sell[0]][merged_sell[1]] = -1
         merge_table[merged_sell[0]][merged_sell[1]] = [merged_sell]
         
     value_table[indices[0]][indices[1]] = value
@@ -173,7 +171,7 @@ def unmerge(value_table, merge_table, indices):
     return value_table, merge_table
 
 def print_func(value_table, indices):
-    if value_table[indices[0]][indices[1]] == 0:
+    if value_table[indices[0]][indices[1]] == -1:
         return "EMPTY"
     
     return value_table[indices[0]][indices[1]]
