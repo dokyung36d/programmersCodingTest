@@ -1,7 +1,6 @@
 ## merge table에서 만약 있으면 각 element는 tuple 형식
 
-##	실행한 결괏값 "MERGE 1 2 1 3"이 기댓값 ["group","group"]과 다릅니다.
-## 	실행한 결괏값 "'tuple' object has no attribute 'extend'"이 기댓값 ["d","EMPTY"]과 다릅니다.
+# 1, 13, 14, 15, 16, 19
 import copy
 
 def solution(commands):
@@ -62,8 +61,6 @@ def update_by_location(value_table, merge_table, indices : tuple, value):
     prev_value = value_table[indices[0]][indices[1]]
     
     for merged_indices in merge_table[indices[0]][indices[1]]:
-        assert prev_value == value_table[merged_indices[0]][merged_indices[1]] ##문제 발생
-        
         value_table[merged_indices[0]][merged_indices[1]] = value
         
     return value_table, merge_table
@@ -77,9 +74,12 @@ def update_by_value(value_table, origin_value, change_value): ##Need Refactoring
     return value_table
 
 def merge(value_table, merge_table, indices_1, indices_2):
-    if (indices_1 == indices_2) or (indices_2 in merge_table[indices_1[0]][indices_1[1]]):
+    if indices_2 in merge_table[indices_1[0]][indices_1[1]]:
         return value_table, merge_table
     
+    if indices_1 in merge_table[indices_2[0]][indices_2[1]]:
+        return value_table, merge_table
+    assert (indices_1 in merge_table[indices_2[0]][indices_2[1]])
     
     if value_table[indices_1[0]][indices_1[1]] == -1 and value_table[indices_2[0]][indices_2[1]] == -1: ##태초의 상태
         merge_table[indices_1[0]][indices_1[1]].extend(merge_table[indices_2[0]][indices_2[1]])
@@ -87,6 +87,8 @@ def merge(value_table, merge_table, indices_1, indices_2):
         
         for merged in merged_list:
             merge_table[merged[0]][merged[1]] = merged_list
+            value_table[merged[0]][merged[1]] = -1
+
             
         return value_table, merge_table
     
@@ -100,8 +102,6 @@ def merge(value_table, merge_table, indices_1, indices_2):
             value_table[merged[0]][merged[1]] = value_table[indices_2[0]][indices_2[1]]
             merge_table[merged[0]][merged[1]] = merged_list
             
-        merge_table[indices_1[0]][indices_1[1]] = merged_list
-        value_table[indices_1[0]][indices_1[1]] = value_table[indices_2[0]][indices_2[1]]
         
         return value_table, merge_table
     
@@ -114,16 +114,18 @@ def merge(value_table, merge_table, indices_1, indices_2):
             value_table[merged[0]][merged[1]] = value_table[indices_1[0]][indices_1[1]]
             merge_table[merged[0]][merged[1]] = merged_list
             
-        merge_table[indices_2[0]][indices_2[1]] = merged_list
-        value_table[indices_2[0]][indices_2[1]] = value_table[indices_1[0]][indices_1[1]]
-        
+
         return value_table, merge_table
+    
+    else:
+        return False
     
     
 
 def unmerge(value_table, merge_table, indices):
     value = value_table[indices[0]][indices[1]]
     merged_sells = merge_table[indices[0]][indices[1]]
+    
     if merged_sells == [indices]:
         return value_table, merge_table
     
