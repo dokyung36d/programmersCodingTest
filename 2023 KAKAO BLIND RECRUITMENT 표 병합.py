@@ -59,18 +59,11 @@ def process_instruction(command, value_table, merge_table, return_list):
         return value_table, merge_table
 
 def update_by_location(value_table, merge_table, indices : tuple, value):
-#     if merge_table[indices[0]][indices[1]] == [indices]:
-#         value_table[indices[0]][indices[1]] = value
-        
-#         return value_table, merge_table
-#     elif merge_table[indices[0]][indices[1]] == []:
-#         value_table[indices[0]][indices[1]] = value
-#         merge_table[indices[0]][indices[1]] = [indices]
-        
-#         return value_table, merge_table
-    
+    prev_value = value_table[indices[0]][indices[1]]
     
     for merged_indices in merge_table[indices[0]][indices[1]]:
+        assert prev_value == value_table[merged_indices[0]][merged_indices[1]] ##문제 발생
+        
         value_table[merged_indices[0]][merged_indices[1]] = value
         
     return value_table, merge_table
@@ -84,76 +77,49 @@ def update_by_value(value_table, origin_value, change_value): ##Need Refactoring
     return value_table
 
 def merge(value_table, merge_table, indices_1, indices_2):
-    if indices_1 == indices_2 or indices_2 in merge_table[indices_1[0]][indices_1[1]]:
+    if (indices_1 == indices_2) or (indices_2 in merge_table[indices_1[0]][indices_1[1]]):
         return value_table, merge_table
-        
-    merge = merge_table[indices_1[0]][indices_1[1]]
+    
     
     if value_table[indices_1[0]][indices_1[1]] == -1 and value_table[indices_2[0]][indices_2[1]] == -1: ##태초의 상태
-#         if len(merge_table[indices_1[0]][indices_1[1]]) == 1 and len(merge_table[indices_2[0]][indices_2[1]]) == 0:
-#             merge_table[indices_1[0]][indices_1[1]] = [indices_1, indices_2]
-#             merge_table[indices_2[0]][indices_2[1]] = [indices_1, indices_2]
-            
-#             return value_table, merge_table
-        
-#         elif len(merge_table[indices_1[0]][indices_1[1]]) == 1 and len(merge_table[indices_2[0]][indices_2[1]]) != 1:
-#             merge_table[indices_2[0]][indices_2[1]].append(indices_1)
-#             merge_table[indices_1[0]][indices_1[1]] = merge_table[indices_2[0]][indices_2[1]]
-            
-#             return value_table, merge_table
-        
-#         elif len(merge_table[indices_1[0]][indices_1[1]]) != 1 and len(merge_table[indices_2[0]][indices_2[1]]) == 1:
-#             merge_table[indices_1[0]][indices_1[1]].append(indices_2)
-#             merge_table[indices_2[0]][indices_2[1]] = merge_table[indices_1[0]][indices_1[1]]
-            
-#             return value_table, merge_table
-
         merge_table[indices_1[0]][indices_1[1]].extend(merge_table[indices_2[0]][indices_2[1]])
-        merge_table[indices_2[0]][indices_2[1]] = merge_table[indices_1[0]][indices_1[1]]
+        merged_list = list(set(merge_table[indices_1[0]][indices_1[1]]))
         
+        for merged in merged_list:
+            merge_table[merged[0]][merged[1]] = merged_list
+            
         return value_table, merge_table
     
+    
     if value_table[indices_1[0]][indices_1[1]] == -1 and value_table[indices_2[0]][indices_2[1]] != -1:
-        # if len(merge_table[indices_1[0]][indices_1[1]]) == 1:
-        #     merge_table[indices_2[0]][indices_2[1]].append(indices_1)
-        # else:
+
         merge_table[indices_2[0]][indices_2[1]].extend(merge_table[indices_1[0]][indices_1[1]])
+        merged_list = list(set(merge_table[indices_2[0]][indices_2[1]]))
         
-        for merged in merge_table[indices_1[0]][indices_1[1]]:
+        for merged in merged_list:
             value_table[merged[0]][merged[1]] = value_table[indices_2[0]][indices_2[1]]
-            merge_table[merged[0]][merged[1]] = merge_table[indices_2[0]][indices_2[1]]
+            merge_table[merged[0]][merged[1]] = merged_list
             
-        merge_table[indices_1[0]][indices_1[1]] = merge_table[indices_2[0]][indices_2[1]]
+        merge_table[indices_1[0]][indices_1[1]] = merged_list
         value_table[indices_1[0]][indices_1[1]] = value_table[indices_2[0]][indices_2[1]]
         
         return value_table, merge_table
     
+    
     if value_table[indices_1[0]][indices_1[1]] != -1:
-        # if len(merge_table[indices_2[0]][indices_2[1]]) == 1:
-        #     merge_table[indices_1[0]][indices_1[1]].append(indices_2)
-        # else:
         merge_table[indices_1[0]][indices_1[1]].extend(merge_table[indices_2[0]][indices_2[1]])
-
+        merged_list = list(set(merge_table[indices_1[0]][indices_1[1]]))
         
-        for merged in merge_table[indices_2[0]][indices_2[1]]:
+        for merged in merged_list:
             value_table[merged[0]][merged[1]] = value_table[indices_1[0]][indices_1[1]]
-            merge_table[merged[0]][merged[1]] = merge_table[indices_1[0]][indices_1[1]]
+            merge_table[merged[0]][merged[1]] = merged_list
             
-        merge_table[indices_2[0]][indices_2[1]] = merge_table[indices_1[0]][indices_1[1]]
+        merge_table[indices_2[0]][indices_2[1]] = merged_list
         value_table[indices_2[0]][indices_2[1]] = value_table[indices_1[0]][indices_1[1]]
         
         return value_table, merge_table
-
-#     else:
-#         merge.extend(merge_table[indices_2[0]][indices_2[1]])
-#         for indices in merge_table[indices_2[0]][indices_2[1]]: ##합칠 때 여러 개일 경우 value 값도 다 변경해줘야 함
-#             value_table[indices[0]][indices[1]] = value_table[indices_1[0]][indices_1[1]]
-#             merge_table[indices[0]][indices[1]] = merge
-
-#         merge_table[indices_1[0]][indices_1[1]] = merge
-#         merge_table[indices_2[0]][indices_2[1]] = merge
-
-#         return value_table, merge_table
+    
+    
 
 def unmerge(value_table, merge_table, indices):
     value = value_table[indices[0]][indices[1]]
@@ -169,6 +135,8 @@ def unmerge(value_table, merge_table, indices):
     merge_table[indices[0]][indices[1]] = [indices]
     
     return value_table, merge_table
+
+
 
 def print_func(value_table, indices):
     if value_table[indices[0]][indices[1]] == -1:
