@@ -90,13 +90,13 @@ def find_fastest(cur_pos, dest, answer : str): ##After using dfs
             answer += "u" * abs(row_delta)
             
             
-    elif row_delta > 0: ## r
-        answer += "r" * row_delta
+    elif col_delta > 0: ## r
+        answer += "r" * col_delta
         
-        if col_delta > 0:
-            answer += "d" * col_delta
+        if row_delta > 0:
+            answer += "d" * row_delta
         else:
-            answer += "u" * abs(col_delta)
+            answer += "u" * abs(row_delta)
             
             
     elif row_delta < 0: ## d
