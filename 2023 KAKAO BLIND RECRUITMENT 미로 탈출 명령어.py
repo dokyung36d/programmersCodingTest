@@ -47,7 +47,7 @@ def check_move_available(cur_pos, direction, n, m, dest, remain_move):
     
     return (moved_row, moved_col)
     
-def dfs(cur_position, dest, remain_move, n , m, answer : str):
+def dfs(cur_position, dest, remain_move, n , m, answer : str): ##도착하고 낭비하는 case 고려해야 할 듯
     if calculate_distance(cur_position, dest) == remain_move:
         answer = find_fastest(cur_position, dest, answer)
         return answer ##여기서 이제 알파벳 순서대로 경로 설정, dfs는 더 이상 하지 않아도 됨
