@@ -24,7 +24,6 @@ def rotate(move, current_delta):
     elif move == 2: ## (3) 경우 : 동쪽 방향으로 회전
         changed_delta_index = (current_delta_index - 1) % 4
 
-
     return delta_list[changed_delta_index]
 
 def get_next_move(current_pos, map):
@@ -100,11 +99,11 @@ def golem(start_col, direction, map):
 
 def clear_map(map):
     global  R, C
-    ##지도 0 : 비어 있음, 1:차지하고 있는 공간 2 : 탈출 방향
+    ##지도 0 : 비어 있음, 1:차지하고 있는 공간
     ##각 지도 맵마다 골렘 고유번호도 넣어야 할 듯(다른 골렘일 경우에만 넘어갈 수 있도록)
     for i in range(3, R):
         for j in range(C):
-            map[i][j] = (-1, 0) #고유 번호, 상태
+            map[i][j] = (0, -1, None, None) ##상태, Golem 고유번호, 센터, direction
 
     return map
 
@@ -113,36 +112,75 @@ def apply_to_map(moved_pos, direction, golem_unique_num, map):
     delta_list = [(0, -1), (1, 0), (0, 1), (-1, 0), (0, 0)]
 
     for delta in delta_list:
+        ##상태, Golem 고유번호, 센터, direction
         moved_pos_x, moved_pos_y = moved_pos[0] + delta[0], moved_pos[1] + delta[1]
-        map[moved_pos_x][moved_pos_y] = (golem_unique_num, 1)
+        map[moved_pos_x][moved_pos_y] = (1, golem_unique_num, moved_pos, direction)
 
-    direction_pos_x, direction_pos_y = moved_pos[0] + direction[0], moved_pos[1] + direction[1]
-    map[direction_pos_x][direction_pos_y] = (golem_unique_num, 2)
+    # direction_pos_x, direction_pos_y = moved_pos[0] + direction[0], moved_pos[1] + direction[1]
+    # map[direction_pos_x][direction_pos_y] = (golem_unique_num, 2)
 
     return map
 
-def calculate_score(pos, direction, golem_unique_num):
-    score = pos[0]
-
-    ##영역을 확장한다는 아이디어로 Go하면 좋을 듯
+#dfs로 가야할 듯
+def calculate_score(pos, direction, map, visited):
+    best_score = pos[0] + 1 ##센터에서 한 칸 아래가 현재 최대
     ##영역 확장할 때 golem_unique_num을 이용해 무한 loop 방지
-    ##아니면 map에 정보를 넣을 때 부터 max_row를 넣어도 될 듯, 반복된 계산을 줄일 수 있음
+    ##아니면 map에 정보를 넣을 때 부터 max_row를 넣어도 될 듯, 반복된 계산을 줄일 수 있음 -> 반례 존재
+
+    jump_points = get_jump_points(pos, direction, map, visited)
+
+    for jump_point in jump_points:
+        new_score =jump_point[1][0] + 1
+        if new_score > best_score:
+            best_score = new_score
+
+        new_score = calculate_score(jump_point[1], jump_point[2], map, visited + [jump_point[0]])
+        if new_score > best_score:
+            best_score = new_score
+
+    return best_score
+
+def get_jump_points(pos, direction, map, visited):
+    ##jump 이후의 center과 direction을 return 함
+    jump_points = []
+    jump_start_pos = (pos[0] + direction[0], pos[1] + direction[1])
+    reverse_direction = (-direction[0], -direction[1])
+
+    delta_list = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    delta_list.remove(reverse_direction)
+
+    for delta in delta_list:
+        jumped_x, jumped_y = jump_start_pos[0] + delta[0], jump_start_pos[1] + delta[1]
+
+        if map[jumped_x][jumped_y][0] != 0 and map[jumped_x][jumped_y][1] not in visited:
+            ##점프한 곳이 비어있지 않고 이전에 방문한 골렘이 아닌 경우
+
+            jump_point_center, jump_point_direction = map[jumped_x][jumped_y][2], map[jumped_x][jumped_y][3]
+            jump_golem_unique_number = map[jumped_x][jumped_y][1]
+            jump_points.append((jump_golem_unique_number, jump_point_center, jump_point_direction))
+
+    return jump_points
+
+
 
 
 
 if __name__ == "__main__":
-    map = [[(-1, 0) for _ in range(C)] for _ in range(R)]
+    delta_list = [(0, -1), (1, 0), (0, 1), (-1, 0)]
+    map = [[(0, -1, None, None) for _ in range(C)] for _ in range(R)]
+    ##상태, Golem 고유번호, 센터, direction
 
     total_score = 0
 
     for i in range(K):
-        pos, direction = golem(golem_infos[i][0], golem_infos[i][1])
+        pos, direction = golem(golem_infos[i][0], delta_list[golem_infos[i][1]], map)
 
         if not check_golem_in_box(pos):
             map = clear_map()
-            pos, direction = golem(golem_infos[i][0], golem_infos[i][1])
+            pos, direction = golem(golem_infos[i][0], delta_list[golem_infos[i][1]])
 
         map = apply_to_map(pos, direction)
         score = calculate_score(pos, direction, map)
 
         total_score += score
+        print(score)
