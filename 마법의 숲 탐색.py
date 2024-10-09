@@ -166,7 +166,7 @@ def get_jump_points(pos, direction, map, visited):
     jump_start_pos = (pos[0] + direction[0], pos[1] + direction[1])
     reverse_direction = (-direction[0], -direction[1])
 
-    delta_list = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    delta_list = [(1, 0), (0, -1), (0, 1), (-1, 0)]
     delta_list.remove(reverse_direction)
 
     for delta in delta_list:
