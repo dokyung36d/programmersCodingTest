@@ -156,6 +156,10 @@ def calculate_score(pos, direction, map, visited):
 
     return best_score
 
+
+##매 회마다 하는 것보다는 각 영역마다 최종 값을 저장하는 게 효율이 좋을 듯
+##구한 이후에 새로 내려운 골렘이 다른 값에 영향을 미치면 그것도 업데이트해야 할 듯
+##아이디어 자체는 기존과 비슷한 듯
 def get_jump_points(pos, direction, map, visited):
     ##jump 이후의 center과 direction을 return 함
     jump_points = []
