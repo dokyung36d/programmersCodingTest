@@ -1,4 +1,5 @@
 import sys
+import copy
 
 R, C, K = map(int, sys.stdin.readline().split())
 R += 3 ##초기에 골렘이 들어갈 때를 고려하기 위해 (-3으로 하면 아래에 있는 행으로 가게 됨
@@ -41,7 +42,7 @@ def get_next_move(current_pos, map):
 
 
     ##Second, Check Second Case
-    second_delta_list = [(1, -2), (1, -1), (2, -1)]
+    second_delta_list = [(-1, -1), (0, -2), (1, -2), (1, -1), (2, -1)]
     second_result = moved_position_available(current_pos, second_delta_list, map)
 
     if second_result == 0:
@@ -50,7 +51,7 @@ def get_next_move(current_pos, map):
 
 
     ##Third, Check Third Case
-    third_delta_list = [(1, 2), (1, 1), (2, 1)]
+    third_delta_list = [(-1, 1), (0, 2), (1, 2), (1, 1), (2, 1)]
     third_result = moved_position_available(current_pos, third_delta_list, map)
 
     if third_result == 0:
@@ -88,7 +89,7 @@ def golem(start_col, direction, map):
 
     while True:
         next_move, moved_pos = get_next_move(pos, map)
-        print("next move", next_move)
+        # print("next move", next_move)
 
         if next_move == -1: ##move is not available
             return pos, direction
@@ -126,14 +127,22 @@ def apply_to_map(moved_pos, direction, golem_unique_num, map):
 
 #dfs로 가야할 듯
 def calculate_score(pos, direction, map, visited):
+    global R
     best_score = pos[0] + 1 ##센터에서 한 칸 아래가 현재 최대
     ##영역 확장할 때 golem_unique_num을 이용해 무한 loop 방지
     ##아니면 map에 정보를 넣을 때 부터 max_row를 넣어도 될 듯, 반복된 계산을 줄일 수 있음 -> 반례 존재
 
-    jump_points = get_jump_points(pos, direction, map, visited) ##문제 없음
-    print(jump_points)
+    if best_score == R:
+        return best_score
 
+    jump_points = get_jump_points(pos, direction, map, visited) ##문제 없음
+    # print(jump_points)
+
+    ##visited 활용하기
     for jump_point in jump_points:
+        if jump_point[0] in visited:
+            continue
+
         new_score = jump_point[1][0] + 1
         if new_score > best_score:
             best_score = new_score
@@ -141,6 +150,9 @@ def calculate_score(pos, direction, map, visited):
         new_score = calculate_score(jump_point[1], jump_point[2], map, visited + [jump_point[0]])
         if new_score > best_score:
             best_score = new_score
+
+        if best_score == R:
+            break
 
     return best_score
 
@@ -175,6 +187,7 @@ def get_jump_points(pos, direction, map, visited):
 if __name__ == "__main__":
     delta_list = [(-1, 0), (0, 1), (1, 0), (0, -1)]
     map = [[(0, -1, None, None) for _ in range(C)] for _ in range(R)]
+    original_map = copy.deepcopy(map)
     ##상태, Golem 고유번호, 센터, direction
 
     total_score = 0
@@ -183,16 +196,17 @@ if __name__ == "__main__":
         pos, direction = golem(golem_infos[i][0] - 1, delta_list[golem_infos[i][1]], map)
 
         if not check_golem_in_box(pos):
-            map = clear_map(map)
+            map = original_map
+            original_map = copy.deepcopy(map)
             pos, direction = golem(golem_infos[i][0], delta_list[golem_infos[i][1]], map)
             continue
 
         map = apply_to_map(pos, direction, i, map)
         score = calculate_score(pos, direction, map, [i]) - 2
 
-        print(pos)
-        print("direction", direction)
-        print(score)
+        # print(pos)
+        # print("direction", direction)
+        # print(score)
         total_score += score
 
-    print("total_score", total_score)
+    print(total_score)
