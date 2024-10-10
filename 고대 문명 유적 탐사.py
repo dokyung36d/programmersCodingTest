@@ -15,8 +15,9 @@ replace_list = list(map(int, sys.stdin.readline().split()))
 
 def rotate_all_case(matrix):
     best_stadard = [360, (6, 6)]
-    best_score = 0
+    best_score = -1
     best_result = []
+    best_matrix = matrix
 
     rotate_degree_list = [90, 180, 270]
     for i in range(1, 4):
@@ -29,14 +30,16 @@ def rotate_all_case(matrix):
                     best_score = score
                     best_result = result
                     best_stadard = [rotate_degree, (i, j)]
+                    best_matrix = rotated_matrix
 
                 elif score == best_score:
                     standard = [rotate_degree, (i, j)]
                     if check_standard(best_stadard, standard):
                         best_stadard = standard
                         best_result = result
+                        best_matrix = rotated_matrix
 
-    return best_result
+    return best_result, best_matrix
 
 def check_standard(standard0, standard1):
     if standard0[0] < standard1[0]:
@@ -71,7 +74,6 @@ def rotate(matrix, degree, center):
     not_edge_list = [(-1, 0), (0, 1), (1, 0), (0, -1)]
 
     for i in range(4):
-        original_index = i
         rotated_index = (i + num_rotate) % 4
 
         edge_point = (center[0] + edge_list[i][0], center[1] + edge_list[i][1])
@@ -148,21 +150,34 @@ def sort(index_list):
 
 
 if __name__ == "__main__":
-    total_score = 0
+    wall_used = 0
 
-    # while True:
-    #     # #matrix = [[7,6,7], [7,1,5], [6,3,2]]
-    #     # rotated_matrix = rotate(matrix, 90, (2, 2))
-    #     # result = bfs(rotated_matrix)
+    for _ in range(K):
+        total_score = 0
+        #matrix = [[7,6,7], [7,1,5], [6,3,2]]
+        # rotated_matrix = rotate(matrix, 90, (2, 2))
+        # result = bfs(rotated_matrix)
 
-    result = rotate_all_case(matrix)
-    print(result)
-    total_score += len(result)
+        result, matrix = rotate_all_case(matrix)
+        # print(result)
 
-    # result = search((0, 1), rotated_matrix)
-    result = sort(result)
-    for i in range(len(result)):
-        matrix[result[i][0]][result[i][1]] = replace_list[i]
-    replace_list = replace_list[len(result):]
+        # result = search((0, 1), rotated_matrix)
 
-    print(result)
+        while result:
+            total_score += len(result)
+
+            result = sort(result)
+
+            for i in range(len(result)):
+                matrix[result[i][0]][result[i][1]] = replace_list[wall_used + i]
+            wall_used += len(result)
+            # replace_list = replace_list[len(result):]
+
+            # print(matrix)
+            result = bfs(matrix)
+            # print(len(result))
+
+        if total_score != 0:
+            print(total_score, end= " ")
+        else:
+            break
