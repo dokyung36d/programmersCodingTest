@@ -45,38 +45,47 @@ def deer(pos, closest_santa_pos):
 
 
 def santa(pos, deer_pos):
-    min_distance = 10 ** 10
+    global matrix
+    # min_distance = 10 ** 10
     move_candidate = []
     direction = (deer_pos[0] - pos[0], deer_pos[1] - pos[1])
+    distance_standard = calculate_distance(pos, deer_pos)
 
     if direction[0] > 0:
-        moved_position = (pos[0] - 1, pos[1])
+        moved_position = (pos[0] + 1, pos[1])
         distance = calculate_distance(moved_position, deer_pos)
-        if distance < min_distance:
-            min_distance = distance
-            santa_pos = moved_position
+
+        if matrix[moved_position[0]][moved_position[1]] == 0 and distance < distance_standard:
+            move_candidate.append((distance, 1, moved_position))
 
     if direction[0] < 0:
-        moved_position = (pos[0] + 1, pos[1])
-        if distance < min_distance:
-            min_distance = distance
-            santa_pos = moved_position
+        moved_position = (pos[0] - 1, pos[1])
+        distance = calculate_distance(moved_position, deer_pos)
+
+        if matrix[moved_position[0]][moved_position[1]] == 0 and distance < distance_standard:
+            move_candidate.append((distance, 4, moved_position))
 
 
     if direction[1] > 0:
         moved_position = (pos[0], pos[1] + 1)
-        if distance < min_distance:
-            min_distance = distance
-            santa_pos = moved_position
+        distance = calculate_distance(moved_position, deer_pos)
+
+        if matrix[moved_position[0]][moved_position[1]] == 0 and distance < distance_standard:
+            move_candidate.append((distance, 2, moved_position))
 
     if direction[1] < 0:
         moved_position = (pos[0], pos[1] - 1)
-        if distance < min_distance:
-            min_distance = distance
-            santa_pos = moved_position
+        distance = calculate_distance(moved_position, deer_pos)
+
+        if matrix[moved_position[0]][moved_position[1]] == 0 and distance < distance_standard:
+            move_candidate.append((distance, 3, moved_position))
 
 
-    return min_distance, santa_pos
+    move_candidate.sort()
+
+    if len(move_candidate) == 0:
+        return -1, -1
+    return move_candidate[0][0], move_candidate[0][2]
 
 def collosion(pos, direction, is_deer_moved : bool):
     global C, D, santa_score_list, matrix
@@ -88,25 +97,43 @@ def collosion(pos, direction, is_deer_moved : bool):
         delta = (C * direction[0], C * direction[1])
         santa_score_list[santa_unique_num - 1] += C
 
-        santa_pos = (pos[0] + delta[0], pos[1] + delta[1])
-
-        if not check_index(santa_pos): ##matrix 밖으로 나가는 경우
-            remove_santa_by_unique_num(santa_unique_num)
-
-        matrix = update_map(pos, (pos[0] + delta[0], pos[1] + delta[1], santa_unique_num))
 
     else:
         delta = (D * direction[0], D * direction[1])
         santa_score_list[santa_unique_num - 1] += D
-        matrix = update_map(pos, (pos[0] + delta[0], pos[1] + delta[1], santa_unique_num))
+
+        santa_pos = (pos[0] + delta[0], pos[1] + delta[1])
+
+
+    if not check_index(santa_pos): ##matrix 밖으로 나가는 경우
+        remove_santa_by_unique_num(santa_unique_num)
+
+    if matrix[santa_pos[0]][santa_pos[1]] != 0:
+        interact(santa_pos, direction)
+
+
+    matrix = update_map(pos, (pos[0] + delta[0], pos[1] + delta[1], santa_unique_num))
 
     return matrix
 
-def interact(pos, direction, collosioned_santa_unique_num):
+##recursion 방식으로 처리
+##해당 함수는 COLLISION내부에서 사용되어야 함
+##pos는 충돌 이후 도착 지점, direction은 단위 delta, collisioned_santa_unique_num은 현재 이동하고 있는 산타, 침범하는 산타
+def interact(pos, direction):
     global matrix
 
-    matrix = update_map(pos, (pos[0] + direction[0], pos[1] + direction[1]), matrix[pos[0]][pos[1]])
-    matrix[pos[0]][pos[1]] = collosioned_santa_unique_num
+    after_interact_pos = (pos[0] + direction[0], pos[1] + direction[1])
+
+    if not check_index(after_interact_pos):
+        remove_santa_by_unique_num(matrix[pos[0]][pos[1]])
+        matrix[pos[0]][pos[1]] = 0
+    
+    if matrix[after_interact_pos[0]][after_interact_pos[1]] != 0:
+        ##연쇄적으로 이동하면 제일 뒤에 있는 것이 먼저 움직여야 함
+        interact(after_interact_pos, direction)
+
+
+    update_map(pos, (pos[0] + direction[0], pos[1] + direction[1]), matrix[pos[0]][pos[1]])
 
     return matrix
 
@@ -172,11 +199,15 @@ if __name__ == "__main__":
 
         santa_position = (N - santa_distance_list[i][1], N - santa_distance_list[i][2])
         distance, santa_pos = santa(santa_position, deer_pos)
-
+        
+        if distance == -1: ##이동이 불가한 경우
+            continue 
 
         santa_distance_list[i] = (distance, N - santa_pos[0], N - santa_pos[1], santa_distance_list[i][-1])
 
     santa_distance_list.sort()
+
+    print(matrix)
 
     # print(deer_direction)
     # deer_pos = deer((deer_row, deer_col), santa_list[])
