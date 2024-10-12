@@ -18,8 +18,10 @@ for _ in range(P):
     santa_row -= 1
     santa_col -= 1
 
-    santa_list.append((santa_row, santa_col))
+    santa_list.append((santa_unique_num, santa_row, santa_col))
     matrix[santa_row][santa_col] = santa_unique_num
+
+santa_list.sort()
 
 def deer(pos, closest_santa_pos):
     ##최소 거리의 산타를 input으로 넣어줘야 할 듯. 최적화를 위해
@@ -119,7 +121,8 @@ def collosion_by_santa(pos, direction):
 
 
     santa_unique_num = matrix[pos[0] - direction[0]][pos[1] - direction[1]]
-    # print("santa unique", santa_unique_num)
+    # print("pos", pos, direction)
+    # print("santa unique num", santa_unique_num)
 
     santa_blecked_out[santa_unique_num - 1] = 1
 
@@ -216,16 +219,19 @@ def remove_outed_santa(santa_dist_list):
 
 if __name__ == "__main__":
     ##map의 각 point에는 "d"와 santa의 고유번호 저장
-    santa_distance_list = [(i + 1, (calculate_distance((deer_row, deer_col), santa_list[i])), N - santa_list[i][0], N - santa_list[i][1]) for i in range(len(santa_list))]
+    santa_distance_list = [(i + 1, (calculate_distance((deer_row, deer_col), santa_list[i])), N - santa_list[i][1], N - santa_list[i][2]) for i in range(len(santa_list))]
     ##(거리, N - 행, N - 열, 기절 여부, santa 고유번호)
     deer_pos = (deer_row, deer_col)
+    for matrix_row in matrix:
+        print(matrix_row)
+    print()
 
 
     for _ in range(M):
         prev_deer_pos = (deer_pos[0], deer_pos[1])
 
-        santa_distance_list.sort(key = lambda x: (x[1:]))
-
+        santa_distance_list.sort(key = lambda x: x[1:])
+        print(santa_distance_list)
         deer_pos, deer_direction = deer(prev_deer_pos, (N - santa_distance_list[0][2], N - santa_distance_list[0][3]))
 
         if matrix[deer_pos[0]][deer_pos[1]] != 0:
@@ -237,25 +243,40 @@ if __name__ == "__main__":
         santa_distance_list.sort()
         # print(santa_distance_list)
 
+        for matrix_row in matrix:
+            print(matrix_row)
+        print()
+
         for i in range(len(santa_distance_list)):
             if santa_blecked_out[santa_distance_list[i][0] - 1] != 0:
                 santa_blecked_out[santa_distance_list[i][0] - 1] -= 1
+                # santa_position = (N - santa_distance_list[i][2], N - santa_distance_list[i][3])
+                # santa_distance_list[i] = (santa_distance_list[0], calculate_distance(santa_position, deer_pos), santa_distance_list[2], santa_distance_list[3])
                 continue
 
-
+            # print(santa_distance_list[i])
+            # print(matrix)
             santa_position = (N - santa_distance_list[i][2], N - santa_distance_list[i][3])
             distance, santa_pos, santa_direction = santa(santa_position, deer_pos)
 
-
-            if santa_pos == deer_pos:
+            if santa_direction == (0, 0):
+                pass
+            elif santa_pos == deer_pos:
                 collosion_by_santa(santa_pos, santa_direction)
             else:
                 update_map(santa_position, santa_pos, santa_distance_list[i][0])
                 santa_distance_list[i] = (santa_distance_list[i][0], distance, N - santa_pos[0], N - santa_pos[1])
 
+            for matrix_row in matrix:
+                print(matrix_row)
+            print()
         santa_distance_list = remove_outed_santa(santa_distance_list)
 
-        print(matrix)
+        for j in range(len(santa_distance_list)):
+            santa_score_list[santa_distance_list[j][0] - 1] += 1
+
+        print()
+        print(santa_score_list)
 
         # print(deer_direction)
         # deer_pos = deer((deer_row, deer_col), santa_list[])
