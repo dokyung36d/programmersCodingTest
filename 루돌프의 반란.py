@@ -1,4 +1,5 @@
 import sys
+import copy
 
 N, M, P, C, D = map(int, sys.stdin.readline().split())
 deer_row, deer_col = map(int, sys.stdin.readline().split())
@@ -250,6 +251,9 @@ if __name__ == "__main__":
 
         if not santa_distance_list:
             break
+
+
+
         deer_pos, deer_direction = deer(prev_deer_pos, (N - santa_distance_list[0][2], N - santa_distance_list[0][3]))
 
         if matrix[deer_pos[0]][deer_pos[1]] != 0:
@@ -293,6 +297,8 @@ if __name__ == "__main__":
 
         for j in range(len(santa_distance_list)):
             santa_score_list[santa_distance_list[j][0] - 1] += 1
+
+        before_matrix = copy.deepcopy(matrix)
 
         # print()
         # print(santa_score_list)
