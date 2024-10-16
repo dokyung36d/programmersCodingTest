@@ -92,7 +92,7 @@ def santa(pos, deer_pos):
 
 def collosion_by_deer(pos, direction):
     global C, D, santa_score_list, matrix
-
+    # print(direction)
     santa_unique_num = matrix[pos[0]][pos[1]]
 
 
@@ -132,8 +132,12 @@ def collosion_by_santa(pos, direction, i):
     santa_score_list[santa_unique_num - 1] += D
 
 
-    # if D == 1:
-    #     return matrix
+    if D == 1:
+        santa_pos = (pos[0] - direction[0], pos[1] - direction[1])
+        for i in range(len(santa_distance_list)):
+            if santa_distance_list[i][0] == santa_unique_num:
+                santa_distance_list[i] = (santa_unique_num, 1, N - santa_pos[0], N - santa_pos[1])
+        return matrix
     santa_pos = (pos[0] + delta[0], pos[1] + delta[1])
 
 
@@ -277,7 +281,7 @@ if __name__ == "__main__":
             if santa_direction == (0, 0):
                 pass
             elif santa_pos == deer_pos: #collosion이 발생한 이후
-                collosion_by_santa(santa_pos, santa_direction, i)
+                collosion_by_santa(santa_pos, santa_direction, i) ##collosion 이후의 distance_list 업데이트 필요
             else:
                 update_map(santa_position, santa_pos, santa_distance_list[i][0])
                 santa_distance_list[i] = (santa_distance_list[i][0], distance, N - santa_pos[0], N - santa_pos[1])
