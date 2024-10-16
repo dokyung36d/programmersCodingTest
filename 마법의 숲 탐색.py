@@ -157,6 +157,36 @@ def calculate_score(pos, direction, map, visited):
     return best_score
 
 
+def calculate_score_bfs(pos, direction, map, visited):
+    global R
+    best_score = pos[0] + 1 ##센터에서 한 칸 아래가 현재 최대
+    ##영역 확장할 때 golem_unique_num을 이용해 무한 loop 방지
+    ##아니면 map에 정보를 넣을 때 부터 max_row를 넣어도 될 듯, 반복된 계산을 줄일 수 있음 -> 반례 존재
+
+    if best_score == R:
+        return best_score
+
+    jump_points = get_jump_points(pos, direction, map, visited) ##문제 없음
+    # print(jump_points)
+
+    while jump_points:
+        jump_point = jump_points.pop(0)
+
+        if jump_point[0] in visited:
+            continue
+
+        new_score = jump_point[1][0] + 1
+        if new_score > best_score:
+            best_score = new_score
+
+        if best_score == R:
+            break
+        
+        new_jump_points = get_jump_points(jump_point[1], jump_point[2], map, visited + [jump_point[0]])
+        visited += [jump_point[0]]
+        jump_points.extend(new_jump_points)
+
+    return best_score
 ##매 회마다 하는 것보다는 각 영역마다 최종 값을 저장하는 게 효율이 좋을 듯
 ##구한 이후에 새로 내려운 골렘이 다른 값에 영향을 미치면 그것도 업데이트해야 할 듯
 ##아이디어 자체는 기존과 비슷한 듯
@@ -206,7 +236,7 @@ if __name__ == "__main__":
             continue
 
         map = apply_to_map(pos, direction, i, map)
-        score = calculate_score(pos, direction, map, [i]) - 2
+        score = calculate_score_bfs(pos, direction, map, [i]) - 2
 
         # print(pos)
         # print("direction", direction)
