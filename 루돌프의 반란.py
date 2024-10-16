@@ -52,6 +52,7 @@ def santa(pos, deer_pos):
     move_candidate = []
     direction = (deer_pos[0] - pos[0], deer_pos[1] - pos[1])
     distance_standard = calculate_distance(pos, deer_pos)
+    print(pos, deer_pos)
 
     if direction[0] > 0:
         moved_position = (pos[0] + 1, pos[1])
@@ -116,9 +117,9 @@ def collosion_by_deer(pos, direction):
 
     return matrix
 
-def collosion_by_santa(pos, direction):
+def collosion_by_santa(pos, direction, i):
     ##부딫힌 다음 distance_list 업데이트 필요
-    global C, D, santa_score_list, matrix
+    global C, D, santa_score_list, matrix, santa_distance_list
 
     santa_unique_num = matrix[pos[0] - direction[0]][pos[1] - direction[1]]
     # print("pos", pos, direction)
@@ -130,8 +131,9 @@ def collosion_by_santa(pos, direction):
     delta = (-D * direction[0], -D * direction[1])
     santa_score_list[santa_unique_num - 1] += D
 
-    if D == 1:
-        return matrix
+
+    # if D == 1:
+    #     return matrix
     santa_pos = (pos[0] + delta[0], pos[1] + delta[1])
 
 
@@ -145,14 +147,16 @@ def collosion_by_santa(pos, direction):
 
     santa_before_move_pos = (pos[0] - direction[0], pos[1] - direction[1])
     matrix = update_map(santa_before_move_pos, (pos[0] + delta[0], pos[1] + delta[1]), santa_unique_num)
-
+    for i in range(len(santa_distance_list)):
+        if santa_distance_list[i][0] == santa_unique_num:
+            santa_distance_list[i] = (santa_unique_num, calculate_distance(santa_pos, deer_pos), N - santa_pos[0], N - santa_pos[1])
     return matrix
 
 ##recursion 방식으로 처리
 ##해당 함수는 COLLISION내부에서 사용되어야 함
 ##pos는 충돌 이후 도착 지점, direction은 단위 delta, collisioned_santa_unique_num은 현재 이동하고 있는 산타, 침범하는 산타
 def interact(pos, direction):
-    global matrix
+    global matrix, santa_distance_list, deer_pos
 
     after_interact_pos = (pos[0] + direction[0], pos[1] + direction[1])
 
@@ -160,15 +164,19 @@ def interact(pos, direction):
         remove_santa_by_unique_num(matrix[pos[0]][pos[1]])
         matrix[pos[0]][pos[1]] = 0
         return matrix
-    
+
+    santa_unique_num = matrix[after_interact_pos[0]][after_interact_pos[1]]
+
     if matrix[after_interact_pos[0]][after_interact_pos[1]] != 0:
         ##연쇄적으로 이동하면 제일 뒤에 있는 것이 먼저 움직여야 함
         interact(after_interact_pos, direction)
 
 
     update_map(pos, (pos[0] + direction[0], pos[1] + direction[1]), matrix[pos[0]][pos[1]])
+    for j in range(len(santa_distance_list)):
+        if santa_distance_list[j][0] == santa_unique_num:
+            santa_distance_list[j] = (santa_unique_num, calculate_distance(after_interact_pos, deer_pos), N - after_interact_pos[0], N - after_interact_pos[1])
 
-    return matrix
 
 # def get_closest_santa(santa_list, santa_distance_list):
 #     min_distancee = 10 ** 10
@@ -268,8 +276,8 @@ if __name__ == "__main__":
 
             if santa_direction == (0, 0):
                 pass
-            elif santa_pos == deer_pos:
-                collosion_by_santa(santa_pos, santa_direction)
+            elif santa_pos == deer_pos: #collosion이 발생한 이후
+                collosion_by_santa(santa_pos, santa_direction, i)
             else:
                 update_map(santa_position, santa_pos, santa_distance_list[i][0])
                 santa_distance_list[i] = (santa_distance_list[i][0], distance, N - santa_pos[0], N - santa_pos[1])
