@@ -170,11 +170,12 @@ def interact(pos, direction):
         matrix[pos[0]][pos[1]] = 0
         return matrix
 
-    santa_unique_num = matrix[after_interact_pos[0]][after_interact_pos[1]]
-
     if matrix[after_interact_pos[0]][after_interact_pos[1]] != 0:
         ##연쇄적으로 이동하면 제일 뒤에 있는 것이 먼저 움직여야 함
         interact(after_interact_pos, direction)
+
+    santa_unique_num = matrix[after_interact_pos[0]][after_interact_pos[1]]
+
 
 
     update_map(pos, (pos[0] + direction[0], pos[1] + direction[1]), matrix[pos[0]][pos[1]])
