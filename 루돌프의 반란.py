@@ -230,7 +230,7 @@ def remove_santa_by_unique_num(unique_num):
 
 def remove_outed_santa(santa_dist_list):
     for i in range(len(santa_dist_list) - 1, -1, -1):
-        if santa_dist_list[i][1] == -1:
+        if santa_dist_list[i][2] == -1:
             santa_dist_list.pop(i)
     return santa_dist_list
 
@@ -284,7 +284,7 @@ if __name__ == "__main__":
             distance, santa_pos, santa_direction = santa(santa_position, deer_pos)
 
             if santa_direction == (0, 0):
-                pass
+                santa_distance_list[i] = (santa_distance_list[i][0], distance, N - santa_pos[0], N - santa_pos[1])
             elif santa_pos == deer_pos: #collosion이 발생한 이후
                 collosion_by_santa(santa_pos, santa_direction, i) ##collosion 이후의 distance_list 업데이트 필요
             else:
