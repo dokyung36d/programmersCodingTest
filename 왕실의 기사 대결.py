@@ -67,7 +67,7 @@ def change_fighter_position(fighter_index, edge, direction_index):
 
     moved_edge = (edge[0] + direction[0], edge[1] + direction[1])
 
-    if not check_move_available: ##제일 끝에 있는 것이 이동 불가능하면 모두 이동 불가능함.
+    if not check_move_available(moved_edge, height, width): ##제일 끝에 있는 것이 이동 불가능하면 모두 이동 불가능함.
         return False
     
     counter_fighter_list = check_fight_avail(moved_edge, height, width, fighter_index)
@@ -114,7 +114,7 @@ def check_fight_avail(moved_edge, height, width, fighter_index): ##이동한 위
             if moved_edge[0] <= fighter_edge[0] < moved_edge[0] + height and  moved_edge[1] <= fighter_edge[1] < moved_edge[1] + width:
                 fighter_avail_list.append(i)
     
-    return fighter_avail_list ##이동한 자리에 기사가 없어 싸움이 필요없는 경우
+    return list(set(fighter_avail_list)) ##이동한 자리에 기사가 없어 싸움이 필요없는 경우
 
 def get_damage(edge, height, width):
     global trap_list
@@ -129,7 +129,7 @@ def get_damage(edge, height, width):
 
 
 def get_four_edge(edge, height, width):
-    edges = [(edge[0], edge[1]), (edge[0] + height, edge[1]), (edge[0], edge[1] + width), (edge[0] + height, edge[1] + width)]
+    edges = [(edge[0], edge[1]), (edge[0] + height - 1, edge[1]), (edge[0], edge[1] + width - 1), (edge[0] + height - 1, edge[1] + width - 1)]
 
     return edges
 
