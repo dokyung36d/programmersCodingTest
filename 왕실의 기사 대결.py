@@ -2,6 +2,8 @@
 
 L, N ,Q = map(int, input().split())
 
+total_damage = 0
+
 map_matrix = []
 fighter_info_list = []
 command_list = []
@@ -22,12 +24,9 @@ for i in range(L):
 for _ in range(N):
     fighter_info_list.append(list(map(int, input().split())))
 
-for _ in range(Q):
-    command_list.append(list(map(int, input().split())))
 
 #기사가 아웃되었는지 여부
 fighter_outed =[0] * N
-
 
 def check_move_available(edge, height, width):
     global trap_list
@@ -50,8 +49,10 @@ def check_move_available(edge, height, width):
     return True
 
 
-def change_fighter_position(fighter_index, edge, height, width, direction_index):
-    global map_matrix
+def change_fighter_position(fighter_index, direction_index):
+    global map_matrix, total_damage
+
+    edge, height, width = (fighter_info_list[fighter_index][0], fighter_info_list[fighter_index][1]), fighter_info_list[fighter_index][2], fighter_info_list[fighter_index][3]
     
     direction_dict = {0 : (-1, 0), 1 : (0, 1), 2 : (1, 0), 3 : (0, -1)}
 
@@ -67,6 +68,8 @@ def change_fighter_position(fighter_index, edge, height, width, direction_index)
 
     if counter_fighter_index == -1: ##이동한 자리애 상대방 기사가 없는 경우
         damage = get_damage(moved_edge, height, width)
+
+        total_damage += damage
         remain_health = fighter_info_list[i][-1] - damage
 
         fighter_info_list[fighter_index] = (moved_edge[0], moved_edge[1], height, width, remain_health)
@@ -117,3 +120,10 @@ def get_four_edge(edge, height, width):
     edges = [(edge), (edge[0] + height, edge[1]), (edge[0], edge[1] + width), (edge[0] + height, edge[1] + width)]
 
     return edges
+
+
+for _ in range(Q):
+    fighter_index, direction_index = map(int, input().split())
+
+    result = change_fighter_position(fighter_index, direction_index)
+
