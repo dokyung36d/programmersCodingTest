@@ -28,6 +28,9 @@ for i in range(L):
 for _ in range(N):
     fighter_info_list.append(list(map(int, input().split())))
 
+    fighter_info_list[-1][0] -= 1
+    fighter_info_list[-1][1] -= 1
+
 
 #기사가 아웃되었는지 여부
 fighter_outed =[0] * N
@@ -39,7 +42,7 @@ def check_move_available(edge, height, width):
         return False
     
     for i in range(len(wall_list)):
-        if edge[0] <= wall_list[i][0] <= edge[0] + height and  edge[1] <= wall_list[i][1] <= edge[1] + width:
+        if edge[0] <= wall_list[i][0] < edge[0] + height and  edge[1] <= wall_list[i][1] < edge[1] + width:
             return False
 
 
@@ -67,7 +70,7 @@ def change_fighter_position(fighter_index, edge, direction_index):
     if not check_move_available: ##제일 끝에 있는 것이 이동 불가능하면 모두 이동 불가능함.
         return False
     
-    counter_fighter_list = check_fight_avail(moved_edge, height= height, width= width)
+    counter_fighter_list = check_fight_avail(moved_edge, height, width, fighter_index)
     
 
     if not counter_fighter_list: ##이동한 자리애 상대방 기사가 없는 경우
@@ -86,7 +89,9 @@ def change_fighter_position(fighter_index, edge, direction_index):
 
     # result = change_fighter_position(counter_fighter_index, moved_edge, height = height, width = width)
     for counter_fighter_index in counter_fighter_list:
-        result = change_fighter_position(counter_fighter_index, moved_edge, direction_index)
+        counter_fighter_edge = (fighter_info_list[counter_fighter_index][0], fighter_info_list[counter_fighter_index][1])
+        result = change_fighter_position(counter_fighter_index, counter_fighter_edge, direction_index)
+
         if result == False:
             return False
     
@@ -96,17 +101,17 @@ def change_fighter_position(fighter_index, edge, direction_index):
 
 
 
-def check_fight_avail(moved_edge, height, width): ##이동한 위치에 기존 기사가 존재하는 지 check
+def check_fight_avail(moved_edge, height, width, fighter_index): ##이동한 위치에 기존 기사가 존재하는 지 check
     fighter_avail_list = []
     for i in range(len(fighter_info_list)):
-        if fighter_outed[i] == 1: ##이미 아웃된 경우
+        if fighter_outed[i] == 1 or fighter_index == i: ##이미 아웃된 경우, 자기 자신인 경우
             continue
 
 
         fighter_edges = get_four_edge(fighter_info_list[i][0:2], fighter_info_list[i][2], fighter_info_list[i][3])
 
         for fighter_edge in fighter_edges:
-            if moved_edge[0] <= fighter_edge[0] <= moved_edge[0] + height and  moved_edge[1] <= fighter_edge[1] <= moved_edge[1] + width:
+            if moved_edge[0] <= fighter_edge[0] < moved_edge[0] + height and  moved_edge[1] <= fighter_edge[1] < moved_edge[1] + width:
                 fighter_avail_list.append(i)
     
     return fighter_avail_list ##이동한 자리에 기사가 없어 싸움이 필요없는 경우
