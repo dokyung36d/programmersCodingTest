@@ -1,9 +1,5 @@
 ##체스판의 크기가 그렇게 크지 않으므로 전체 탐색으로 해도 괜찮을 듯
 
-import sys
-
-sys.setrecursionlimit(10**6)
-
 L, N ,Q = map(int, input().split())
 
 total_damage = 0
@@ -116,6 +112,8 @@ def check_fight_avail(moved_edge, height, width, fighter_index): ##이동한 위
 
         fighter_edges = get_four_edge(fighter_info_list[i][0:2], fighter_info_list[i][2], fighter_info_list[i][3])
 
+
+        ##Error Occur Point, 기존 사각형이 더 큰 경우도 고려해야함.
         for fighter_edge in fighter_edges:
             if moved_edge[0] <= fighter_edge[0] < moved_edge[0] + height and  moved_edge[1] <= fighter_edge[1] < moved_edge[1] + width:
                 fighter_avail_list.append(i)
