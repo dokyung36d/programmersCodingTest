@@ -67,14 +67,14 @@ def change_fighter_position(fighter_index, edge, direction_index):
     if not check_move_available: ##제일 끝에 있는 것이 이동 불가능하면 모두 이동 불가능함.
         return False
     
-    counter_fighter_index = check_fight_avail(moved_edge, height= height, width= width)
+    counter_fighter_list = check_fight_avail(moved_edge, height= height, width= width)
     
 
-    if counter_fighter_index == -1: ##이동한 자리애 상대방 기사가 없는 경우
+    if not counter_fighter_list: ##이동한 자리애 상대방 기사가 없는 경우
         damage = get_damage(moved_edge, height, width)
 
         total_damage += damage
-        remain_health = fighter_info_list[i][-1] - damage
+        remain_health = fighter_info_list[fighter_index][-1] - damage
 
         fighter_info_list[fighter_index] = (moved_edge[0], moved_edge[1], height, width, remain_health)
 
@@ -85,9 +85,10 @@ def change_fighter_position(fighter_index, edge, direction_index):
     
 
     # result = change_fighter_position(counter_fighter_index, moved_edge, height = height, width = width)
-    result = change_fighter_position(counter_fighter_index, moved_edge, direction_index)
-    if result == False:
-        return False
+    for counter_fighter_index in counter_fighter_list:
+        result = change_fighter_position(counter_fighter_index, moved_edge, direction_index)
+        if result == False:
+            return False
     
     fighter_info_list[fighter_index] = (moved_edge[0], moved_edge[1], height, width, fighter_info_list[fighter_index][-1])
     return True
@@ -96,6 +97,7 @@ def change_fighter_position(fighter_index, edge, direction_index):
 
 
 def check_fight_avail(moved_edge, height, width): ##이동한 위치에 기존 기사가 존재하는 지 check
+    fighter_avail_list = []
     for i in range(len(fighter_info_list)):
         if fighter_outed[i] == 1: ##이미 아웃된 경우
             continue
@@ -105,9 +107,9 @@ def check_fight_avail(moved_edge, height, width): ##이동한 위치에 기존 �
 
         for fighter_edge in fighter_edges:
             if moved_edge[0] <= fighter_edge[0] <= moved_edge[0] + height and  moved_edge[1] <= fighter_edge[1] <= moved_edge[1] + width:
-                return i
+                fighter_avail_list.append(i)
     
-    return -1 ##이동한 자리에 기사가 없어 싸움이 필요없는 경우
+    return fighter_avail_list ##이동한 자리에 기사가 없어 싸움이 필요없는 경우
 
 def get_damage(edge, height, width):
     global trap_list
@@ -115,7 +117,7 @@ def get_damage(edge, height, width):
     total_damage = 0
 
     for trap in trap_list:
-        if edge[0] < trap[0] < edge[0] + height and edge[1] < trap[1] < edge[1] + width:
+        if edge[0] <= trap[0] < edge[0] + height and edge[1] <= trap[1] < edge[1] + width:
             total_damage += 1
 
     return total_damage
@@ -138,3 +140,4 @@ for _ in range(Q):
  
     result = change_fighter_position(fighter_index, edge, direction_index)
 
+print(total_damage)
