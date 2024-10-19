@@ -71,6 +71,9 @@ def change_fighter_position(fighter_index, edge, height, width, direction_index)
 
         fighter_info_list[fighter_index] = (moved_edge[0], moved_edge[1], height, width, remain_health)
 
+        if remain_health <= 0:
+            fighter_outed[fighter_index] = 1
+
         return True
     
 
