@@ -1,5 +1,9 @@
 ##체스판의 크기가 그렇게 크지 않으므로 전체 탐색으로 해도 괜찮을 듯
 
+import sys
+
+sys.setrecursionlimit(10**6)
+
 L, N ,Q = map(int, input().split())
 
 total_damage = 0
@@ -49,10 +53,10 @@ def check_move_available(edge, height, width):
     return True
 
 
-def change_fighter_position(fighter_index, direction_index):
+def change_fighter_position(fighter_index, edge, direction_index):
     global map_matrix, total_damage
 
-    edge, height, width = (fighter_info_list[fighter_index][0], fighter_info_list[fighter_index][1]), fighter_info_list[fighter_index][2], fighter_info_list[fighter_index][3]
+    height, width = fighter_info_list[fighter_index][2], fighter_info_list[fighter_index][3]
     
     direction_dict = {0 : (-1, 0), 1 : (0, 1), 2 : (1, 0), 3 : (0, -1)}
 
@@ -80,7 +84,8 @@ def change_fighter_position(fighter_index, direction_index):
         return True
     
 
-    result = change_fighter_position(counter_fighter_index, moved_edge, height = height, width = width)
+    # result = change_fighter_position(counter_fighter_index, moved_edge, height = height, width = width)
+    result = change_fighter_position(counter_fighter_index, moved_edge, direction_index)
     if result == False:
         return False
     
@@ -99,7 +104,7 @@ def check_fight_avail(moved_edge, height, width): ##이동한 위치에 기존 �
         fighter_edges = get_four_edge(fighter_info_list[i][0:2], fighter_info_list[i][2], fighter_info_list[i][3])
 
         for fighter_edge in fighter_edges:
-            if moved_edge[0] <= fighter_edge[i][0] <= moved_edge[0] + height and  moved_edge[1] <= fighter_edge[i][1] <= moved_edge[1] + width:
+            if moved_edge[0] <= fighter_edge[0] <= moved_edge[0] + height and  moved_edge[1] <= fighter_edge[1] <= moved_edge[1] + width:
                 return i
     
     return -1 ##이동한 자리에 기사가 없어 싸움이 필요없는 경우
@@ -117,13 +122,19 @@ def get_damage(edge, height, width):
 
 
 def get_four_edge(edge, height, width):
-    edges = [(edge), (edge[0] + height, edge[1]), (edge[0], edge[1] + width), (edge[0] + height, edge[1] + width)]
+    edges = [(edge[0], edge[1]), (edge[0] + height, edge[1]), (edge[0], edge[1] + width), (edge[0] + height, edge[1] + width)]
 
     return edges
 
 
 for _ in range(Q):
     fighter_index, direction_index = map(int, input().split())
+    fighter_index -= 1
 
-    result = change_fighter_position(fighter_index, direction_index)
+    if fighter_outed[fighter_index] == 1:
+        continue
+
+    edge = (fighter_info_list[fighter_index][0], fighter_info_list[fighter_index][1])
+ 
+    result = change_fighter_position(fighter_index, edge, direction_index)
 
