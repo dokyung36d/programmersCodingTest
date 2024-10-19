@@ -1,9 +1,5 @@
 ##체스판의 크기가 그렇게 크지 않으므로 전체 탐색으로 해도 괜찮을 듯
 
-import sys
-
-sys.setrecursionlimit(10**6)
-
 L, N ,Q = map(int, input().split())
 
 total_damage = 0
@@ -13,6 +9,7 @@ fighter_info_list = []
 command_list = []
 trap_list = []
 wall_list = []
+damage_list = [0] * N
 
 for i in range(L):
     map_matrix.append(list(map(int, input().split())))
@@ -77,6 +74,7 @@ def change_fighter_position(fighter_index, edge, direction_index):
         damage = get_damage(moved_edge, height, width)
 
         total_damage += damage
+        damage_list[fighter_index] += damage
         remain_health = fighter_info_list[fighter_index][-1] - damage
 
         fighter_info_list[fighter_index] = (moved_edge[0], moved_edge[1], height, width, remain_health)
@@ -144,5 +142,14 @@ for _ in range(Q):
     edge = (fighter_info_list[fighter_index][0], fighter_info_list[fighter_index][1])
  
     result = change_fighter_position(fighter_index, edge, direction_index)
+
+
+total_damage = 0
+
+for i in range(N):
+    if fighter_outed[i] == 1:
+        continue
+
+    total_damage += damage_list[i]
 
 print(total_damage)
