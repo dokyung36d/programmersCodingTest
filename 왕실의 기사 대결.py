@@ -1,5 +1,9 @@
 ##체스판의 크기가 그렇게 크지 않으므로 전체 탐색으로 해도 괜찮을 듯
 
+import sys
+
+sys.setrecursionlimit(10**6)
+
 L, N ,Q = map(int, input().split())
 
 total_damage = 0
@@ -53,7 +57,7 @@ def check_move_available(edge, height, width):
     return True
 
 
-def change_fighter_position(fighter_index, edge, direction_index):
+def change_fighter_position(fighter_index, edge, direction_index, attack):
     global map_matrix, total_damage
 
     height, width = fighter_info_list[fighter_index][2], fighter_info_list[fighter_index][3]
@@ -73,6 +77,10 @@ def change_fighter_position(fighter_index, edge, direction_index):
     if not counter_fighter_list: ##이동한 자리애 상대방 기사가 없는 경우
         damage = get_damage(moved_edge, height, width)
 
+        if attack: ##자신이 공격한 경우
+            fighter_info_list[fighter_index] = (moved_edge[0], moved_edge[1], height, width, fighter_info_list[fighter_index][-1])
+
+            return True
         total_damage += damage
         damage_list[fighter_index] += damage
         remain_health = fighter_info_list[fighter_index][-1] - damage
@@ -88,7 +96,7 @@ def change_fighter_position(fighter_index, edge, direction_index):
     # result = change_fighter_position(counter_fighter_index, moved_edge, height = height, width = width)
     for counter_fighter_index in counter_fighter_list:
         counter_fighter_edge = (fighter_info_list[counter_fighter_index][0], fighter_info_list[counter_fighter_index][1])
-        result = change_fighter_position(counter_fighter_index, counter_fighter_edge, direction_index)
+        result = change_fighter_position(counter_fighter_index, counter_fighter_edge, direction_index, False)
 
         if result == False:
             return False
@@ -141,7 +149,7 @@ for _ in range(Q):
 
     edge = (fighter_info_list[fighter_index][0], fighter_info_list[fighter_index][1])
  
-    result = change_fighter_position(fighter_index, edge, direction_index)
+    result = change_fighter_position(fighter_index, edge, direction_index, True)
 
 
 total_damage = 0
