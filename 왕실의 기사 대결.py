@@ -105,20 +105,53 @@ def change_fighter_position(fighter_index, edge, direction_index, attack):
 
 def check_fight_avail(moved_edge, height, width, fighter_index): ##이동한 위치에 기존 기사가 존재하는 지 check
     fighter_avail_list = []
+    fighter = (moved_edge, fighter_info_list[fighter_index][2], fighter_info_list[fighter_index][3])
+
     for i in range(len(fighter_info_list)):
         if fighter_outed[i] == 1 or fighter_index == i: ##이미 아웃된 경우, 자기 자신인 경우
             continue
 
+        
+        oppo_fighter = (fighter_info_list[i][0:2], fighter_info_list[i][2], fighter_info_list[i][3])
+        intersect_result = check_two_rectangle_intersect(fighter, oppo_fighter)
 
-        fighter_edges = get_four_edge(fighter_info_list[i][0:2], fighter_info_list[i][2], fighter_info_list[i][3])
+        if intersect_result == 1:
+            fighter_avail_list.append(i)
 
-
-        ##Error Occur Point, 기존 사각형이 더 큰 경우도 고려해야함.
-        for fighter_edge in fighter_edges:
-            if moved_edge[0] <= fighter_edge[0] < moved_edge[0] + height and  moved_edge[1] <= fighter_edge[1] < moved_edge[1] + width:
-                fighter_avail_list.append(i)
+        # ##Error Occur Point, 기존 사각형이 더 큰 경우도 고려해야함.
+        # for oppo_fighter_edge in oppo_fighter_edges:
+        #     if moved_edge[0] <= oppo_fighter_edge[0] < moved_edge[0] + height and  moved_edge[1] <= oppo_fighter_edge[1] < moved_edge[1] + width:
+        #         fighter_avail_list.append(i)
+        
     
-    return list(set(fighter_avail_list)) ##이동한 자리에 기사가 없어 싸움이 필요없는 경우
+    return fighter_avail_list ##이동한 자리에 기사가 없어 싸움이 필요없는 경우
+
+def check_two_rectangle_intersect(rec1, rec2):
+    rec1_edge = rec1[0]
+    rec1_height, rec1_width = rec1[1], rec1[2]
+    rec1_four_edges = get_four_edge(rec1_edge, rec1_height, rec1_width)
+
+
+    rec2_edge = rec2[0]
+    rec2_height, rec2_width = rec2[1], rec2[2]
+    rec2_four_edges = get_four_edge(rec2_edge, rec2_height, rec2_width)
+
+
+    ##Check First Case
+    for i in range(len(rec1_four_edges)):
+        if rec2_edge[0] <= rec1_four_edges[i][0] < rec2_edge[0] + rec2_height and rec2_edge[1] <= rec1_four_edges[i][1] < rec2_edge[1] + rec2_width:
+            return 1
+        
+
+    ##Check Second Case
+    for i in range(len(rec2_four_edges)):
+        if rec1_edge[0] <= rec2_four_edges[i][0] < rec1_edge[0] + rec1_height and rec1_edge[1] <= rec2_four_edges[i][1] < rec1_edge[1] + rec1_width:
+            return 1
+        
+
+    return 0
+    
+
 
 def get_damage(edge, height, width):
     global trap_list
