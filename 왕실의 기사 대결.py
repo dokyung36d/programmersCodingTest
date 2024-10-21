@@ -97,11 +97,15 @@ def change_fighter_position(fighter_index, edge, direction_index, attack, damage
     for counter_fighter_index in counter_fighter_list:
         counter_fighter_edge = (fighter_info_list[counter_fighter_index][0], fighter_info_list[counter_fighter_index][1])
         result = change_fighter_position(counter_fighter_index, counter_fighter_edge, direction_index, False, damage_in_turn, moved)
-        moved[counter_fighter_index] = 1
 
         if result == False:
             return False
-
+        
+        ##두 번 더해지는 Case 존재 (제일 뒤에 있는 것이 두 번 더해짐)
+        counter_fighter_edge_moved = (counter_fighter_edge[0] + direction[0], counter_fighter_edge[1] + direction[1])
+        damage = get_damage(counter_fighter_edge_moved, fighter_info_list[counter_fighter_index][2], fighter_info_list[counter_fighter_index][3])
+        damage_in_turn[counter_fighter_index] += damage
+        moved[counter_fighter_index] = 1
 
     # fighter_info_list[fighter_index] = (moved_edge[0], moved_edge[1], height, width, fighter_info_list[fighter_index][-1])
 
