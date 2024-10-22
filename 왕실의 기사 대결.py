@@ -70,7 +70,7 @@ def change_fighter_position(fighter_index, edge, direction_index, attack, damage
     counter_fighter_list = check_fight_avail(moved_edge, height, width, fighter_index)
     
 
-    if not counter_fighter_list: ##이동한 자리애 상대방 기사가 없는 경우
+    if not counter_fighter_list and attack: ##이동한 자리애 상대방 기사가 없는 경우
         damage = get_damage(moved_edge, height, width)
 
         # if attack: ##자신이 공격한 경우
@@ -80,7 +80,7 @@ def change_fighter_position(fighter_index, edge, direction_index, attack, damage
         
         damage_in_turn[fighter_index] += damage
         moved[fighter_index] = 1
-        
+
         # total_damage += damage
         # damage_list[fighter_index] += damage
         # remain_health = fighter_info_list[fighter_index][-1] - damage
@@ -112,7 +112,7 @@ def change_fighter_position(fighter_index, edge, direction_index, attack, damage
     if not attack:
         return True
     
-    # moved[fighter_index] = 1
+    moved[fighter_index] = 1
     
     for i in range(N):
         if moved[i] == 0:
