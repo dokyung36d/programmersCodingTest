@@ -41,6 +41,8 @@ def check_max_depth(p_id):
 def change_color(m_id, color):
     # color = node_dict[m_id][2]
 
+    node_dict[m_id][2] = color
+
     bfs_list = copy.deepcopy(node_dict[m_id][-1])
 
     while bfs_list:
