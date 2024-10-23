@@ -1,8 +1,10 @@
 import copy
+import bisect
 
 Q = int(input())
 
 top_parent_list = []
+top_parent_most_child_dict = {}
 node_dict = {}
 
 
@@ -13,6 +15,7 @@ def node_append(m_id, p_id, color, max_depth):
     if p_id == -1:
         top_parent_list.append([m_id, color, max_depth])
         node_dict[m_id] = [m_id, p_id, color, max_depth, []]
+        top_parent_most_child_dict[m_id] = [m_id] ##초기에는 원시 노드도 자식 노드임
         # node_dict[m_id] = [m_id, p_id, color, max_depth, []]
         # return
     else:
@@ -20,6 +23,26 @@ def node_append(m_id, p_id, color, max_depth):
             return
         node_dict[p_id][-1].append(m_id)
         node_dict[m_id] = [m_id, p_id, color, max_depth, []]
+
+        most_parent_node_id = get_most_parent_id(p_id)
+        index =  bisect.bisect_left(top_parent_most_child_dict[most_parent_node_id])
+
+
+        ##새로 들어오는 node의 부모가 기존의 막내이면 해당 list에서 삭제
+        if top_parent_most_child_dict[most_parent_node_id][index] != p_id:
+            top_parent_most_child_dict[most_parent_node_id].pop(index)
+        
+        bisect.insort_left(top_parent_most_child_dict[most_parent_node_id], m_id)
+
+
+
+def get_most_parent_id(m_id):
+    while m_id != -1:
+        most_parent_id = node_dict[m_id][0]
+        m_id = node_dict[m_id][1]
+
+    ##m_id는 최고 부모의 m_id
+    return most_parent_id
 
 def check_max_depth(p_id):
     depth = 1 ##1의 경우 자지 자신만 허용
@@ -77,6 +100,13 @@ def get_color_range(m_id):
             break
 
     return len(color_list)
+
+
+
+##Search Score의 경우 각 Tree의 맨 아래 자식부터 진행하는 것이 시간 상 유리
+
+def search_score_child_first():
+    pass
 
 
 def search_score():
