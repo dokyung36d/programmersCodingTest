@@ -16,8 +16,9 @@ def node_append(m_id, p_id, color, max_depth):
 
     if p_id == -1:
         top_parent_list.append([m_id, color, max_depth])
-        node_dict[m_id] = [m_id, p_id, color, 0, max_depth, []]
+        node_dict[m_id] = [m_id, p_id, color, 1, max_depth, []]
         top_parent_layer_dict[m_id] = defaultdict(list) ##dict 내부에 dict를 생성
+        top_parent_layer_dict[m_id][1] = [m_id]
         # top_parent_most_child_dict[m_id] = [m_id] ##초기에는 원시 노드도 자식 노드임
         # node_dict[m_id] = [m_id, p_id, color, max_depth, []]
         # return
@@ -118,10 +119,26 @@ def search_score_child_first():
 
     total_score = 0
 
-    for i in range(len(top_parent_list)):
-        parent_id = top_parent_list[i][0]
+    color_range_dict = defaultdict(set)
 
-        most_child_list = copy_list(top_parent_most_child_dict[i])
+    for i in range(len(top_parent_list)):
+        top_parent_id = top_parent_list[i][0]
+
+        layer = max(top_parent_layer_dict[top_parent_id].keys())
+
+        while layer != 0:
+            for j in range(len(top_parent_layer_dict[top_parent_id][layer])):
+                node = node_dict[top_parent_layer_dict[top_parent_id][layer][j]]
+                color_range_dict[node[0]].add(node[2])
+                color_range_dict[node[1]] = color_range_dict[node[1]].union(color_range_dict[node[0]])
+
+                total_score += len(list(color_range_dict[node[0]])) ** 2
+
+            layer -= 1
+
+    
+    return total_score
+
 
 
 
@@ -174,7 +191,7 @@ for _ in range(Q):
         print_list.append(result)
 
     if command[0] == 400:
-        score = search_score()
+        score = search_score_child_first()
         print_list.append(score)
 
 for thing in print_list:
