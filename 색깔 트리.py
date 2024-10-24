@@ -1,10 +1,12 @@
 import copy
 import bisect
+from collections import defaultdict
 
 Q = int(input())
 
 top_parent_list = []
-top_parent_most_child_dict = {}
+# top_parent_most_child_dict = {}
+top_parent_layer_dict = {}
 node_dict = {}
 
 
@@ -14,25 +16,29 @@ def node_append(m_id, p_id, color, max_depth):
 
     if p_id == -1:
         top_parent_list.append([m_id, color, max_depth])
-        node_dict[m_id] = [m_id, p_id, color, max_depth, []]
-        top_parent_most_child_dict[m_id] = [m_id] ##초기에는 원시 노드도 자식 노드임
+        node_dict[m_id] = [m_id, p_id, color, 0, max_depth, []]
+        top_parent_layer_dict[m_id] = defaultdict(list) ##dict 내부에 dict를 생성
+        # top_parent_most_child_dict[m_id] = [m_id] ##초기에는 원시 노드도 자식 노드임
         # node_dict[m_id] = [m_id, p_id, color, max_depth, []]
         # return
     else:
         if not check_max_depth(p_id):
             return
         node_dict[p_id][-1].append(m_id)
-        node_dict[m_id] = [m_id, p_id, color, max_depth, []]
+        current_depth = node_dict[p_id][3] + 1
+        node_dict[m_id] = [m_id, p_id, color, current_depth, max_depth, []]
+
 
         most_parent_node_id = get_most_parent_id(p_id)
-        index =  bisect.bisect_left(top_parent_most_child_dict[most_parent_node_id])
+        top_parent_layer_dict[most_parent_node_id][current_depth].append(m_id)
+        # index =  bisect.bisect_left(top_parent_most_child_dict[most_parent_node_id])
 
 
-        ##새로 들어오는 node의 부모가 기존의 막내이면 해당 list에서 삭제
-        if top_parent_most_child_dict[most_parent_node_id][index] != p_id:
-            top_parent_most_child_dict[most_parent_node_id].pop(index)
+        # ##새로 들어오는 node의 부모가 기존의 막내이면 해당 list에서 삭제
+        # if top_parent_most_child_dict[most_parent_node_id][index] != p_id:
+        #     top_parent_most_child_dict[most_parent_node_id].pop(index)
         
-        bisect.insort_left(top_parent_most_child_dict[most_parent_node_id], m_id)
+        # bisect.insort_left(top_parent_most_child_dict[most_parent_node_id], m_id)
 
 
 
@@ -51,7 +57,7 @@ def check_max_depth(p_id):
         depth += 1
         node = node_dict[p_id]
 
-        if depth > node[3]:
+        if depth > node[-2]:
             return False
 
         if node[1] == -1: ##제일 위의 노드까지 탐색 완료
@@ -66,7 +72,8 @@ def change_color(m_id, color):
 
     node_dict[m_id][2] = color
 
-    bfs_list = copy.deepcopy(node_dict[m_id][-1])
+    # bfs_list = copy.deepcopy(node_dict[m_id][-1])
+    bfs_list = copy_list(node_dict[m_id][-1])
 
     while bfs_list:
         node = bfs_list.pop(0)
@@ -85,7 +92,8 @@ def search_color(m_id):
 def get_color_range(m_id):
     color_list = [node_dict[m_id][2]]
 
-    bfs_list = copy.deepcopy(node_dict[m_id][-1])
+    # bfs_list = copy.deepcopy(node_dict[m_id][-1])
+    bfs_list = copy_list(node_dict[m_id][-1])
 
     while bfs_list:
         node = bfs_list.pop(0)
@@ -103,10 +111,18 @@ def get_color_range(m_id):
 
 
 
-##Search Score의 경우 각 Tree의 맨 아래 자식부터 진행하는 것이 시간 상 유리
+#Search Score의 경우 각 Tree의 맨 아래 자식부터 진행하는 것이 시간 상 유리
 
 def search_score_child_first():
-    pass
+    global top_parent_list
+
+    total_score = 0
+
+    for i in range(len(top_parent_list)):
+        parent_id = top_parent_list[i][0]
+
+        most_child_list = copy_list(top_parent_most_child_dict[i])
+
 
 
 def search_score():
@@ -119,7 +135,8 @@ def search_score():
 
         total_score += get_color_range(parent_id) ** 2
 
-        bfs_list = copy.deepcopy(node_dict[parent_id][-1])
+        # bfs_list = copy.deepcopy(node_dict[parent_id][-1])
+        bfs_list = copy_list(node_dict[parent_id][-1])
 
         while bfs_list:
             node = bfs_list.pop(0)
@@ -129,6 +146,14 @@ def search_score():
             bfs_list.extend(node_dict[node][-1])
 
     return total_score
+
+def copy_list(list1):
+    return_list = []
+
+    for thing in list1:
+        return_list.append(thing)
+
+    return return_list
 
 
 
