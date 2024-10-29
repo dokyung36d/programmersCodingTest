@@ -11,26 +11,27 @@ Q = int(input())
 
 command_list = []
 diverge_list = []
-menu_price_dict = {}
-price_menu_dict = {}
-tree_list = [(0, defaultdict(int), defaultdict(int), 0)] * len(diverge_list)
+menu_price_dict = defaultdict(int)
+price_menu_dict = defaultdict(str)
+tree_list = [(0, defaultdict(int), defaultdict(int), 0)] * (len(diverge_list) + 1)
 
 for i in range(Q):
     command = list(input().split())
     command_list.append(command)
 
-    if command[0] == "sum":
-        bisect.insort_left(diverge_list, command[1])
+    if command[0] == 'sum':
+        bisect.insort_left(diverge_list, int(command[1]))
+
+diverge_list.append(1000000001)
 
 ##(갈라짐의 기준, sum, 자신 아래에서의 name dict)
 
 def init():
     global diverge_list, menu_price_dict, price_menu_dict, tree_list
 
-    diverge_list = []
-    menu_price_dict = {}
-    price_menu_dict = {}
-    tree_list = [(0, defaultdict(int), defaultdict(int), 0)] * len(diverge_list)
+    menu_price_dict = defaultdict(int)
+    price_menu_dict = defaultdict(str)
+    tree_list = [(0, 0, defaultdict(int), 0)] * len(diverge_list)
 
 def find_path(value):
     global tree_list
@@ -39,7 +40,7 @@ def find_path(value):
     start = 0
     end = len(tree_list) - 1
 
-    return_list = [mid_index]
+    return_list = [(start + end) // 2]
 
     while start <= end:
         mid_index = (start + end) // 2
@@ -74,10 +75,10 @@ def insert(menu, price):
 
     for i in range(len(path)):
         index = path[i]
-        new_dict = tree_list[index][-1]
+        new_dict = tree_list[index][2]
         if new_dict[menu] == 1 or new_dict[price] == 1:
             print(0)
-            break
+            return
         new_dict[menu] = 1
         new_dict[price] = 1
 
@@ -85,7 +86,7 @@ def insert(menu, price):
         price_menu_dict[price] = menu
         menu_price_dict[menu] = price
 
-        tree_list[index] = (tree_list[index][0], tree_list[index] + price, new_dict, tree_list[index][3] + 1)
+        tree_list[index] = (tree_list[index][0], tree_list[index][1] + price, new_dict, tree_list[index][3] + 1)
 
     print(1)
 
@@ -98,7 +99,7 @@ def delete(menu):
     global tree_list, menu_price_dict
 
     price = menu_price_dict[menu]
-
+    
     if price == 0:
         return 0
     
@@ -200,13 +201,13 @@ for i in range(Q):
         init()
 
     elif command[0] == "insert":
-        insert(command[1], command[2])
+        insert(command[1], int(command[2]))
 
     elif command[0] == "delete":
         delete(command[1])
 
     elif command[0] == "rank":
-        rank(command[1])
+        rank(int(command[1]))
 
     elif command[0] == "sum":
-        sum(command[1])
+        sum(int(command[1]))
