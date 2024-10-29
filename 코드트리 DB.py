@@ -31,20 +31,23 @@ def find_path(value):
     global tree_list
 
 
-    mid_index = len(tree_list) // 2
+    start = 0
+    end = len(tree_list) - 1
 
     return_list = [mid_index]
 
     while True:
+        mid_index = (start + end) // 2
         if value == diverge_list[mid_index]:
+            return_list.append(mid_index)
             break
         
         if value < diverge_list[mid_index]:
-            mid_index = (0 + mid_index) // 2
+            end = mid_index - 1
             return_list.append(mid_index)
         
         if value > diverge_list[mid_index]:
-            mid_index = (return_list[-1] + mid_index) // 2
+            start = mid_index + 1
             return_list.append(mid_index)
 
     return return_list
@@ -82,12 +85,28 @@ def insert(menu, price):
 ## -> Late Propagation 진행
 ##delete가 올 때마다 탐색하는 각 노드는 delete 여부 확인, 확인하면 대기 list에서 삭제
 ##name은 유일함!!!!!!!!!!!!!!!!!!!!!!!!
-def delete(name):
-    global tree_list
+def delete(menu):
+    global tree_list, menu_price_dict
 
-    index = len(tree_list) // 2
-    if tree_list[index][2][name] == 0:
-        pass
+    price = menu_price_dict[menu]
+
+    if price == 0:
+        return 0
+    
+
+    ## 각 price는 unique하므로 바로 index를 구할 수 있음
+    index = bisect.bisect_left(tree_list, price)
+    node_value = tree_list[index]
+    path = find_path(node_value)
+
+    for i in range(len(path)):
+        node = tree_list[path[i]]
+        node_dict = node[2]
+
+        node_dict[menu] = 0
+        node_dict[price] = 0
+
+        tree_list[path[i]]
 
 
 def apply_deleted(start_index, end_index):
