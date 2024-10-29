@@ -40,7 +40,7 @@ def find_path(value):
     start = 0
     end = len(tree_list) - 1
 
-    return_list = [(start + end) // 2]
+    return_list = []
 
     while start <= end:
         mid_index = (start + end) // 2
@@ -77,8 +77,7 @@ def insert(menu, price):
         index = path[i]
         new_dict = tree_list[index][2]
         if new_dict[menu] == 1 or new_dict[price] == 1:
-            print(0)
-            return
+            return 0
         new_dict[menu] = 1
         new_dict[price] = 1
 
@@ -88,7 +87,7 @@ def insert(menu, price):
 
         tree_list[index] = (tree_list[index][0], tree_list[index][1] + price, new_dict, tree_list[index][3] + 1)
 
-    print(1)
+    return 1
 
 ##삭제한 name이 이후에 추가로 insert 될 수 있음
 ##모든 name에 대해서 탐색해야 하므로 무조건 O(n) -> 모든 node에 대해 delete가 전달이 되어야 함(-> 진행 시점도 저장해야 함)
@@ -119,7 +118,7 @@ def delete(menu):
         tree_list[path[i]] = (tree_list[path[i]][0], tree_list[path[i]][1] - price, node_dict, tree_list[path[i]][3] - 1)
 
 
-
+    return price
 def rank(k):
     global main_list
 
@@ -196,18 +195,23 @@ def sum(value):
 
 for i in range(Q):
     command = command_list[i]
+    print(command)
 
     if command[0] == "init":
         init()
 
     elif command[0] == "insert":
-        insert(command[1], int(command[2]))
+        result = insert(command[1], int(command[2]))
+        print(result)
 
     elif command[0] == "delete":
-        delete(command[1])
+        result = delete(command[1])
+        print(result)
 
     elif command[0] == "rank":
-        rank(int(command[1]))
+        result = rank(int(command[1]))
+        print(result)
 
     elif command[0] == "sum":
-        sum(int(command[1]))
+        result = sum(int(command[1]))
+        print(result)
