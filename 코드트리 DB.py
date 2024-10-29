@@ -9,29 +9,86 @@ from collections import defaultdict
 
 Q = int(input())
 
-main_list = []
-insert_list = []
-delete_list = []
-tree_list = [0] * 100000
+command_list = []
+diverge_list = []
+menu_price_dict = {}
+price_menu_dict = {}
+
+for i in range(Q):
+    command = list(input().split())
+    command_list.append(command)
+
+    if command[0] == "sum":
+        bisect.insort_left(diverge_list, command[1])
+
+tree_list = [(0, defaultdict(int), defaultdict(int))] * len(diverge_list)
+##(갈라짐의 기준, sum, 자신 아래에서의 name dict)
 
 def init():
     return []
 
-def insert(menu, price, order):
-    global main_list
+def find_path(value):
+    global tree_list
 
-    bisect.insort_left(main_list, (price, menu, order))
-    # bisect.insort_left(insert_list, (price, menu, order))
+
+    mid_index = len(tree_list) // 2
+
+    return_list = [mid_index]
+
+    while True:
+        if value == diverge_list[mid_index]:
+            break
+        
+        if value < diverge_list[mid_index]:
+            mid_index = (0 + mid_index) // 2
+            return_list.append(mid_index)
+        
+        if value > diverge_list[mid_index]:
+            mid_index = (return_list[-1] + mid_index) // 2
+            return_list.append(mid_index)
+
+    return return_list
+
+
+def insert(menu, price):
+    global diverge_list
+
+    value_index = bisect.bisect_left(diverge_list, price)
+    if price != diverge_list[value_index]: ##각 노드는 K이하 이므로 동일하면 해당 노드에 속함
+        node = diverge_list[value_index]
+    else:
+        node = value_index ##경계값과 딱 일치하는 경우
+
+    path = find_path(node)
+
+    for i in range(len(path)):
+        index = path[i]
+        new_dict = tree_list[index][-1]
+        if new_dict[menu] == 1 or new_dict[price] == 1:
+            break
+        new_dict[menu] = 1
+        new_dict[price] = 1
+
+        ##추후 delete할 때 사용
+        price_menu_dict[price] = menu
+        menu_price_dict[menu] = price
+
+        tree_list[index] = (tree_list[index][0], tree_list[index] + price, new_dict)
+
 
 
 ##삭제한 name이 이후에 추가로 insert 될 수 있음
 ##모든 name에 대해서 탐색해야 하므로 무조건 O(n) -> 모든 node에 대해 delete가 전달이 되어야 함(-> 진행 시점도 저장해야 함)
 ## -> Late Propagation 진행
 ##delete가 올 때마다 탐색하는 각 노드는 delete 여부 확인, 확인하면 대기 list에서 삭제
-def delete(name, order):
-    global delete_list
+##name은 유일함!!!!!!!!!!!!!!!!!!!!!!!!
+def delete(name):
+    global tree_list
 
-    delete_list.append((name, order))
+    index = len(tree_list) // 2
+    if tree_list[index][2][name] == 0:
+        pass
+
 
 def apply_deleted(start_index, end_index):
     global main_list, delete
@@ -48,51 +105,39 @@ def rank(k):
     
     print(main_list[k-1][1])
 
-def make_tree():
-    pass
-
-##sum에서 값을 구할 때 사용했던 값들을 나중에도 사용해야함
-def sum(search_list, value, depth, tree_index):
+## 갈라질 것의 부모의 index를 return
+## insert에서 들어오는 value는 전부 다름
+def get_tree_node_index(value):
     global tree_list
 
-    total = 0
-
-    if depth == 0: ##미뤄났던 delete를 반영
-        index = bisect.insort_left(value)
-        apply_deleted((0, index))
-
+    path = find_path(value)
     
-    if len(search_list) == 1:
-        if search_list[0][0] < value:
-            return search_list[0][0]
+    node = tree_list[path[-1]]
+
+    return node[1]
+
+##sum에서 값을 구할 때 사용했던 값들을 나중에도 사용해야함
+def sum(value):
+    global tree_list, diverge_list
+
+    mid_index = len(tree_list) // 2
+
+    while True:
+        if value == diverge_list[mid_index]:
+            break
         
-        else:
-            return 0
+        if value < diverge_list[mid_index]:
+            mid_index = (0 + mid_index) // 2
         
-    if not tree_list:
-        make_tree()
+        if value > diverge_list[mid_index]:
+            mid_index = (len(tree_list) + mid_index) // 2
 
-    left_list = search_list[:len(search_list) // 2]
-    right_list = search_list[len(search_list) // 2:]
-    
-    mid_value = search_list[len(search_list) // 2]
-
-    if mid_value < value: ##중간값이 원하는 값보다 작을 때
-        total += sum(left_list, value, depth + 1, 2 * tree_index + 1)
-    
-    else:
-        left_sum = sum(left_list, value, depth + 1, 2 * tree_index + 1)
-        tree_list[2 * tree_index + 1] = left_sum
-
-        total += left_sum
-        total += sum(right_list, value, depth + 1, 2 * tree_index + 2)
-
+    return tree_list[mid_index][0]
+ 
 
 
 
 for i in range(Q):
-    command = list(input().split())
-
     if command[0] == "init":
         main_list = init()
 
