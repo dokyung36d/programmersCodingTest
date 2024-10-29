@@ -9,83 +9,87 @@ from collections import defaultdict
 
 Q = int(input())
 
-command_list = []
-diverge_list = []
-menu_price_dict = defaultdict(int)
-price_menu_dict = defaultdict(str)
-tree_list = [(0, defaultdict(int), defaultdict(int), 0)] * (len(diverge_list) + 1)
+tree_dict = defaultdict(list)
 
-for i in range(Q):
-    command = list(input().split())
-    command_list.append(command)
+tree_dict[0] = [0, (0, 10 ** 9), defaultdict(int), defaultdict(str)]
 
-    if command[0] == 'sum':
-        bisect.insort_left(diverge_list, int(command[1]))
-
-diverge_list.append(1000000001)
 
 ##(갈라짐의 기준, sum, 자신 아래에서의 name dict)
 
 def init():
-    global diverge_list, menu_price_dict, price_menu_dict, tree_list
+    global tree_dict
 
-    menu_price_dict = defaultdict(int)
-    price_menu_dict = defaultdict(str)
-    tree_list = [(0, 0, defaultdict(int), 0)] * len(diverge_list)
+    tree_dict = defaultdict(list)
 
-def find_path(value):
-    global tree_list
+    ## (전체 sum, 범위, menu_price_dict, price_menu_dict, 자기 아래 갯수)
+    tree_dict[0] = [0, (0, 10 ** 9 + 1), defaultdict(int), defaultdict(str), 0]
+
+# def find_path(value):
+#     global tree_list
 
 
-    start = 0
-    end = len(tree_list) - 1
+#     start = 0
+#     end = len(tree_list) - 1
 
-    return_list = []
+#     return_list = []
 
-    while start <= end:
-        mid_index = (start + end) // 2
-        if value == diverge_list[mid_index]:
-            return_list.append(mid_index)
-            break
+#     while start <= end:
+#         mid_index = (start + end) // 2
+#         if value == diverge_list[mid_index]:
+#             return_list.append(mid_index)
+#             break
         
-        if value < diverge_list[mid_index]:
-            end = mid_index - 1
-            return_list.append(mid_index)
+#         if value < diverge_list[mid_index]:
+#             end = mid_index - 1
+#             return_list.append(mid_index)
         
-        if value > diverge_list[mid_index]:
-            start = mid_index + 1
-            return_list.append(mid_index)
+#         if value > diverge_list[mid_index]:
+#             start = mid_index + 1
+#             return_list.append(mid_index)
 
-    return return_list
+#     return return_list
 
 
 def insert(menu, price):
-    global diverge_list
+    global tree_dict
 
-    value_index = bisect.bisect_left(diverge_list, price)
-    # if price != diverge_list[value_index]: ##각 노드는 K이하 이므로 동일하면 해당 노드에 속함
-    #     node = diverge_list[value_index]
-    # else:
-    #     node = value_index ##경계값과 딱 일치하는 경우
-    node = diverge_list[value_index]
+    index = 0
 
-    # if price == tree_list[value_index]
+    if tree_dict[0][2][menu] != 0:
+        return 0
+    
+    if tree_dict[0][3][price] != "":
+        return 0
 
-    path = find_path(node)
 
-    for i in range(len(path)):
-        index = path[i]
-        new_dict = tree_list[index][2]
-        if new_dict[menu] == 1 or new_dict[price] == 1:
-            return 0
-        new_dict[menu] = 1
-        new_dict[price] = 1
+    while True:
+        # if len(tree_dict[index]) == 0:
+        #     pass
 
-        ##추후 delete할 때 사용
-        price_menu_dict[price] = menu
-        menu_price_dict[menu] = price
+        local_menu_price_dict, local_price_menu_dict = tree_dict[index][2], tree_dict[index][3]
 
-        tree_list[index] = (tree_list[index][0], tree_list[index][1] + price, new_dict, tree_list[index][3] + 1)
+        local_menu_price_dict[menu] = price
+        local_price_menu_dict[price] = menu
+
+        tree_dict[index] = (tree_dict[index][0] + price, local_menu_price_dict, local_price_menu_dict, tree_dict[index][-1] + 1)
+
+
+        start, end = tree_dict[index][1][1] - tree_dict[index][1][0]
+        mid_value = (start + end) // 2
+
+        gap = end - start
+
+        if gap == 1:
+            break
+
+        left_gap = (start, mid_value)
+        right_gap = (mid_value, end)
+
+        if left_gap[0] <= price < left_gap[1]:
+            index = 2 * index + 1
+
+        elif right_gap[0] <= price < right_gap[1]:
+            index = 2 * index + 2
 
     return 1
 
@@ -95,71 +99,74 @@ def insert(menu, price):
 ##delete가 올 때마다 탐색하는 각 노드는 delete 여부 확인, 확인하면 대기 list에서 삭제
 ##name은 유일함!!!!!!!!!!!!!!!!!!!!!!!!
 def delete(menu):
-    global tree_list, menu_price_dict
+    global tree_dict
 
-    price = menu_price_dict[menu]
-    
-    if price == 0:
+    if tree_dict[0][2][menu] == 0:
         return 0
     
+    price = tree_dict[0][2][menu]
 
-    ## 각 price는 unique하므로 바로 index를 구할 수 있음
-    index = bisect.bisect_left(tree_list, price)
-    node_value = tree_list[index]
-    path = find_path(node_value)
+    index = 0
+    
+    while True:
+        local_menu_price_dict, local_price_menu_dict = tree_dict[index][2], tree_dict[index][3]
 
-    for i in range(len(path)):
-        node = tree_list[path[i]]
-        node_dict = node[2]
+        local_menu_price_dict[menu] = 0
+        local_price_menu_dict[price] = ""
 
-        node_dict[menu] = 0
-        node_dict[price] = 0
+        tree_dict[index] = (tree_dict[index][0] - price, tree_dict[index][1],
+                             local_menu_price_dict, local_price_menu_dict,
+                             tree_dict[index][-1] - 1)
 
-        tree_list[path[i]] = (tree_list[path[i]][0], tree_list[path[i]][1] - price, node_dict, tree_list[path[i]][3] - 1)
+        gap = tree_dict[index][1][1] - tree_dict[index][1][0]
+
+        if gap == 1:
+            break
+
+        left_node_index = 2 * index + 1
+        right_node_index = 2 * index + 2
+
+        left_node = tree_dict[left_node_index]
+        right_node = tree_dict[right_node_index]
+
+        if left_node[2][menu] != 0:
+            index = 2 * index + 1
+
+        elif right_node[2][menu] != 0:
+            index = 2 * index + 2
 
 
     return price
+
+
+
 def rank(k):
-    global main_list
+    global tree_dict
 
-    start = 0
-    end = len(tree_list) - 1
+    if k > tree_dict[0][-1]:
+        return 0
 
-    if tree_list[(start + end) // 2][3] < k:
-        return None
+    index = 0
 
-    while start <= end:
-        index = (start + end) // 2
+    while True:
+        left_node_index = 2 * index + 1
+        right_node_index = 2 * index + 2
 
+        left_node = tree_dict[left_node_index]
+        right_node = tree_dict[right_node_index]
 
-        left_node_index = (start + index - 1) // 2
-        
-        if k > tree_list[left_node_index][3]:
-            left_node_index = (start + index - 1) // 2
-            k -= tree_list[left_node_index][3]
+        gap = tree_dict[index][1][1] - tree_dict[index][1][0]
 
-            start = index + 1
+        if gap == 1:
+            return index + 1
 
-            # if k <= 0:
-            #     index = left_node_index
-            #     break
+        if k <= left_node[-1]:
+            index = 2 * index + 1
 
-        elif k <= tree_list[left_node_index][3]:
-            end = index - 1
+        elif k > left_node[-1]:
+            k -= left_node[-1]
+            index = 2 * index + 2
 
-
-    values = tree_list[index][2].keys()
-    price_list = []
-
-    for value in values:
-        if type(value) == str:
-            continue
-
-        price_list.append(value)
-
-    price_list.sort()
-
-    return price_list[k - 1]
 
 ## 갈라질 것의 부모의 index를 return
 ## insert에서 들어오는 value는 전부 다름
@@ -174,44 +181,56 @@ def get_tree_node_index(value):
 
 ##sum에서 값을 구할 때 사용했던 값들을 나중에도 사용해야함
 def sum(value):
-    global tree_list, diverge_list
+    global tree_dict
 
-    mid_index = len(tree_list) // 2
+    total_sum = 0
+
+    index = 0
 
     while True:
-        if value == diverge_list[mid_index]:
+        start, end = tree_dict[index][1][0], tree_dict[index][1][1]
+        gap = end - start
+
+        left_node_index = 2 * index + 1
+        right_node_index = 2 * index + 2
+
+        left_node = tree_dict[left_node_index]
+        right_node = tree_dict[right_node_index]
+
+        if gap == 1:
             break
-        
-        if value < diverge_list[mid_index]:
-            mid_index = (0 + mid_index) // 2
-        
-        if value > diverge_list[mid_index]:
-            mid_index = (len(tree_list) + mid_index) // 2
 
-    return tree_list[mid_index][0]
- 
+        mid_value = (start + end) // 2
+
+        if value > mid_value:
+            total_sum += left_node[0]
+            index = 2 * index + 2
+
+        elif value <= mid_value:
+            index = 2 * index + 1
+
+    return total_sum
 
 
+# for i in range(Q):
+#     command = command_list[i]
+#     print(command)
 
-for i in range(Q):
-    command = command_list[i]
-    print(command)
+#     if command[0] == "init":
+#         init()
 
-    if command[0] == "init":
-        init()
+#     elif command[0] == "insert":
+#         result = insert(command[1], int(command[2]))
+#         print(result)
 
-    elif command[0] == "insert":
-        result = insert(command[1], int(command[2]))
-        print(result)
+#     elif command[0] == "delete":
+#         result = delete(command[1])
+#         print(result)
 
-    elif command[0] == "delete":
-        result = delete(command[1])
-        print(result)
+#     elif command[0] == "rank":
+#         result = rank(int(command[1]))
+#         print(result)
 
-    elif command[0] == "rank":
-        result = rank(int(command[1]))
-        print(result)
-
-    elif command[0] == "sum":
-        result = sum(int(command[1]))
-        print(result)
+#     elif command[0] == "sum":
+#         result = sum(int(command[1]))
+#         print(result)
