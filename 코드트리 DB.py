@@ -13,6 +13,7 @@ command_list = []
 diverge_list = []
 menu_price_dict = {}
 price_menu_dict = {}
+tree_list = [(0, defaultdict(int), defaultdict(int), 0)] * len(diverge_list)
 
 for i in range(Q):
     command = list(input().split())
@@ -21,11 +22,15 @@ for i in range(Q):
     if command[0] == "sum":
         bisect.insort_left(diverge_list, command[1])
 
-tree_list = [(0, defaultdict(int), defaultdict(int))] * len(diverge_list)
 ##(갈라짐의 기준, sum, 자신 아래에서의 name dict)
 
 def init():
-    return []
+    global diverge_list, menu_price_dict, price_menu_dict, tree_list
+
+    diverge_list = []
+    menu_price_dict = {}
+    price_menu_dict = {}
+    tree_list = [(0, defaultdict(int), defaultdict(int), 0)] * len(diverge_list)
 
 def find_path(value):
     global tree_list
@@ -36,7 +41,7 @@ def find_path(value):
 
     return_list = [mid_index]
 
-    while True:
+    while start <= end:
         mid_index = (start + end) // 2
         if value == diverge_list[mid_index]:
             return_list.append(mid_index)
@@ -57,10 +62,13 @@ def insert(menu, price):
     global diverge_list
 
     value_index = bisect.bisect_left(diverge_list, price)
-    if price != diverge_list[value_index]: ##각 노드는 K이하 이므로 동일하면 해당 노드에 속함
-        node = diverge_list[value_index]
-    else:
-        node = value_index ##경계값과 딱 일치하는 경우
+    # if price != diverge_list[value_index]: ##각 노드는 K이하 이므로 동일하면 해당 노드에 속함
+    #     node = diverge_list[value_index]
+    # else:
+    #     node = value_index ##경계값과 딱 일치하는 경우
+    node = diverge_list[value_index]
+
+    # if price == tree_list[value_index]
 
     path = find_path(node)
 
@@ -68,6 +76,7 @@ def insert(menu, price):
         index = path[i]
         new_dict = tree_list[index][-1]
         if new_dict[menu] == 1 or new_dict[price] == 1:
+            print(0)
             break
         new_dict[menu] = 1
         new_dict[price] = 1
@@ -76,9 +85,9 @@ def insert(menu, price):
         price_menu_dict[price] = menu
         menu_price_dict[menu] = price
 
-        tree_list[index] = (tree_list[index][0], tree_list[index] + price, new_dict)
+        tree_list[index] = (tree_list[index][0], tree_list[index] + price, new_dict, tree_list[index][3] + 1)
 
-
+    print(1)
 
 ##삭제한 name이 이후에 추가로 insert 될 수 있음
 ##모든 name에 대해서 탐색해야 하므로 무조건 O(n) -> 모든 node에 대해 delete가 전달이 되어야 함(-> 진행 시점도 저장해야 함)
@@ -106,23 +115,51 @@ def delete(menu):
         node_dict[menu] = 0
         node_dict[price] = 0
 
-        tree_list[path[i]]
+        tree_list[path[i]] = (tree_list[path[i]][0], tree_list[path[i]][1] - price, node_dict, tree_list[path[i]][3] - 1)
 
 
-def apply_deleted(start_index, end_index):
-    global main_list, delete
-    pass
 
 def rank(k):
     global main_list
 
-    apply_deleted((0, k))
+    start = 0
+    end = len(tree_list) - 1
 
-    if len(main_list) >= k:
-        print("None")
-        return
-    
-    print(main_list[k-1][1])
+    if tree_list[(start + end) // 2][3] < k:
+        return None
+
+    while start <= end:
+        index = (start + end) // 2
+
+
+        left_node_index = (start + index - 1) // 2
+        
+        if k > tree_list[left_node_index][3]:
+            left_node_index = (start + index - 1) // 2
+            k -= tree_list[left_node_index][3]
+
+            start = index + 1
+
+            # if k <= 0:
+            #     index = left_node_index
+            #     break
+
+        elif k <= tree_list[left_node_index][3]:
+            end = index - 1
+
+
+    values = tree_list[index][2].keys()
+    price_list = []
+
+    for value in values:
+        if type(value) == str:
+            continue
+
+        price_list.append(value)
+
+    price_list.sort()
+
+    return price_list[k - 1]
 
 ## 갈라질 것의 부모의 index를 return
 ## insert에서 들어오는 value는 전부 다름
@@ -157,17 +194,19 @@ def sum(value):
 
 
 for i in range(Q):
+    command = command_list[i]
+
     if command[0] == "init":
-        main_list = init()
+        init()
 
     elif command[0] == "insert":
-        insert()
+        insert(command[1], command[2])
 
     elif command[0] == "delete":
-        delete()
+        delete(command[1])
 
     elif command[0] == "rank":
-        rank()
+        rank(command[1])
 
     elif command[0] == "sum":
-        sum()
+        sum(command[1])
