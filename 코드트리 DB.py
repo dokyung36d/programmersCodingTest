@@ -166,7 +166,7 @@ def delete(menu):
         left_node = tree_dict[left_node_index]
         right_node = tree_dict[right_node_index]
 
-        if left_node[2][menu] != 0:
+        if len(left_node) !=0 and left_node[2][menu] != 0:
             index = 2 * index + 1
 
         elif right_node[2][menu] != 0:
@@ -181,16 +181,27 @@ def rank(k):
     global tree_dict
 
     if k > tree_dict[0][-1]:
-        return 0
+        return None
 
     index = 0
 
     while True:
         if k == 1:
             pass
+        start, end = tree_dict[index][1][0], tree_dict[index][1][1]
+        gap = end - start
+        
 
         left_node_index = 2 * index + 1
         right_node_index = 2 * index + 2
+
+        if len(tree_dict[left_node_index]) == 0:
+            apply_node(left_node_index, (start, (start + end) // 2),
+                        0, 0, insert=False)
+
+        if len(tree_dict[right_node_index]) == 0:
+            apply_node(right_node_index, ((start + end) // 2, end),
+                        0, 0, insert=False)
 
         left_node = tree_dict[left_node_index]
         right_node = tree_dict[right_node_index]
@@ -267,8 +278,6 @@ def sum(value):
 
 for i in range(Q):
     command = list(input().split())
-    print(command)
-
     if command[0] == "init":
         init()
 
