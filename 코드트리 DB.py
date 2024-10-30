@@ -149,8 +149,8 @@ def delete(menu):
     while True:
         local_menu_price_dict, local_price_menu_dict = tree_dict[index][2], tree_dict[index][3]
 
-        local_menu_price_dict[menu] = 0
-        local_price_menu_dict[price] = ""
+        del local_menu_price_dict[menu]
+        del local_price_menu_dict[price]
 
         tree_dict[index] = (tree_dict[index][0] - price, tree_dict[index][1],
                              local_menu_price_dict, local_price_menu_dict,
@@ -187,8 +187,9 @@ def rank(k):
     index = 0
 
     while True:
-        if k == 1:
-            pass
+        if tree_dict[index][-1] == 1:
+            return list(tree_dict[index][2].keys())[0]
+        
         start, end = tree_dict[index][1][0], tree_dict[index][1][1]
         gap = end - start
         
@@ -209,15 +210,16 @@ def rank(k):
 
         gap = tree_dict[index][1][1] - tree_dict[index][1][0]
 
-        if gap == 1:
-            return index + 1
+        # if gap == 1:
+        #     return index + 1
         
 
         ## 왼쪽 노드가 비어있는 경우 error 발생
         if k <= left_node[-1]:
-            if k == 1:
-                name = list(tree_dict[index][2].keys())[0]
-                return name
+            # if k == 1 and left_node[-1] == 1:
+            #     key_list = list(tree_dict[index][2].keys())
+            #     key_list.sort()
+            #     return key_list[0]
             index = 2 * index + 1
 
         elif k > left_node[-1]:
