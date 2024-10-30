@@ -114,9 +114,6 @@ def insert(menu, price):
 
         gap = end - start
 
-        if gap == 1:
-            break
-
         left_gap = (start, mid_value)
         right_gap = (mid_value, end)
 
@@ -127,6 +124,10 @@ def insert(menu, price):
         elif right_gap[0] <= price < right_gap[1]:
             index = 2 * index + 2
             apply_node(index, right_gap, menu, price)
+
+
+        if gap == 1:
+            break
 
     return 1
 
@@ -247,6 +248,11 @@ def sum(value):
         start, end = tree_dict[index][1][0], tree_dict[index][1][1]
         gap = end - start
 
+        if gap == 1:
+            total_sum += tree_dict[index][0]
+            break
+
+
         left_node_index = 2 * index + 1
         right_node_index = 2 * index + 2
 
@@ -261,16 +267,14 @@ def sum(value):
 
         left_node = tree_dict[left_node_index]
         right_node = tree_dict[right_node_index]
-        if gap == 1:
-            break
 
         mid_value = (start + end) // 2
 
-        if value > mid_value:
+        if value >= mid_value:
             index = 2 * index + 2
             total_sum += left_node[0]
 
-        elif value <= mid_value:
+        elif value < mid_value:
             index = 2 * index + 1
 
     return total_sum
