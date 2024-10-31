@@ -4,24 +4,34 @@
 ## insert, delete는 순서대로 저장
 ## 해당되는 범위면 고려
 
-from collections import defaultdict
 
-Q = int(input())
+##그 각 node에 dict를 저장하지 않아도 될 듯
+
+
+from collections import defaultdict
+import sys
+
+Q = int(sys.stdin.readline())
 
 tree_dict = defaultdict(list)
 
-tree_dict[0] = [0, (0, 10 ** 9 + 1), defaultdict(int), defaultdict(str)]
+tree_dict[0] = [0, (0, 10 ** 9 + 1), 0]
+price_menu_dict = defaultdict(str)
+menu_price_dict = defaultdict(int)
 
 
 ##(갈라짐의 기준, sum, 자신 아래에서의 name dict)
 
 def init():
-    global tree_dict
+    global tree_dict, price_menu_dict, menu_price_dict
 
     tree_dict = defaultdict(list)
 
     ## (전체 sum, 범위, menu_price_dict, price_menu_dict, 자기 아래 갯수)
-    tree_dict[0] = [0, (0, 10 ** 9 + 1), defaultdict(int), defaultdict(str), 0]
+    tree_dict[0] = [0, (0, 10 ** 9 + 1), 0]
+    price_menu_dict = defaultdict(str)
+    menu_price_dict = defaultdict(int)
+
 
 # def find_path(value):
 #     global tree_list
@@ -49,37 +59,24 @@ def init():
 #     return return_list
 
 def apply_node(index, gap, menu, price, insert=True):
-    global tree_dict
+    global tree_dict, price_menu_dict, menu_price_dict
 
     if len(tree_dict[index]) == 0:
-        local_menu_price_dict = defaultdict(int)
-        local_price_menu_dict = defaultdict(str)
-
-
         if insert:
-            local_menu_price_dict[menu] = price
-            local_price_menu_dict[price] = menu
+            menu_price_dict[menu] = price
+            price_menu_dict[price] = menu
 
-            tree_dict[index] = (price, gap,
-                                local_menu_price_dict, local_price_menu_dict, 
-                                1)
+            tree_dict[index] = (price, gap, 1)
             
             return
         
-        tree_dict[index] = (0, gap,
-                            local_menu_price_dict, local_price_menu_dict, 
-                            0)
+        tree_dict[index] = (0, gap, 0)
         return
-    
-    
-    local_menu_price_dict, local_price_menu_dict = tree_dict[index][2], tree_dict[index][3]
 
-    local_menu_price_dict[menu] = price
-    local_price_menu_dict[price] = menu
+    menu_price_dict[menu] = price
+    price_menu_dict[price] = menu
 
-    tree_dict[index] = (tree_dict[index][0] + price, tree_dict[index][1],
-                            local_menu_price_dict, local_price_menu_dict, 
-                            tree_dict[index][-1] + 1)
+    tree_dict[index] = (tree_dict[index][0] + price, tree_dict[index][1], tree_dict[index][-1] + 1)
     
     return
 
@@ -92,14 +89,14 @@ def apply_node(index, gap, menu, price, insert=True):
 #     return True
 
 def insert(menu, price):
-    global tree_dict
+    global tree_dict, menu_price_dict, price_menu_dict
 
     index = 0
 
-    if tree_dict[0][2][menu] != 0:
+    if menu_price_dict[menu] != 0:
         return 0
     
-    if tree_dict[0][3][price] != "":
+    if price_menu_dict[price] != "":
         return 0
 
     apply_node(index, (0, 10 ** 9 + 1), menu, price)
@@ -138,26 +135,26 @@ def insert(menu, price):
 def delete(menu):
     global tree_dict
 
-    if tree_dict[0][2][menu] == 0:
-        tree_dict[0][2].pop(menu)
+    if menu_price_dict[menu] == 0:
+        menu_price_dict.pop(menu)
         return 0
     
-    price = tree_dict[0][2][menu]
+    price = menu_price_dict[menu]
 
     index = 0
-    
+
+    menu_price_dict.pop(menu)
+    price_menu_dict.pop(price)
+
     while True:
-        local_menu_price_dict, local_price_menu_dict = tree_dict[index][2], tree_dict[index][3]
-
-        local_menu_price_dict.pop(menu)
-        local_price_menu_dict.pop(price)
-
-
         tree_dict[index] = (tree_dict[index][0] - price, tree_dict[index][1],
-                             local_menu_price_dict, local_price_menu_dict,
                              tree_dict[index][-1] - 1)
 
-        gap = tree_dict[index][1][1] - tree_dict[index][1][0]
+        start, end = tree_dict[index][1][0], tree_dict[index][1][1]
+        mid_value = (start + end) // 2
+
+        gap = end - start
+
 
         if gap == 1:
             break
@@ -165,13 +162,13 @@ def delete(menu):
         left_node_index = 2 * index + 1
         right_node_index = 2 * index + 2
 
-        left_node = tree_dict[left_node_index]
-        right_node = tree_dict[right_node_index]
+        left_gap = (start, mid_value)
+        right_gap = (mid_value, end)
 
-        if len(left_node) !=0 and left_node[2][menu] != 0:
+        if left_gap[0] <= price < left_gap[1]:
             index = 2 * index + 1
 
-        elif right_node[2][menu] != 0:
+        elif right_gap[0] <= price < right_gap[1]:
             index = 2 * index + 2
 
 
@@ -189,39 +186,18 @@ def rank(k):
     index = 0
 
     while True:
-        if tree_dict[index][-1] == 1:
+        if tree_dict[index][1][1] - tree_dict[index][1][0] == 1:
             # price_list = list(tree_dict[index][3].keys())
             # price_list.sort()
             # high_price = price_list[-1]
             # return tree_dict[index][3][high_price]
-
-            price = list(tree_dict[index][3].keys())[0]
-            return tree_dict[index][3][price]
+            return price_menu_dict[tree_dict[index][1][0]]
         
         # start, end = tree_dict[index][1][0], tree_dict[index][1][1]
         # gap = end - start
         
 
         left_node_index = 2 * index + 1
-        # right_node_index = 2 * index + 2
-
-        # if len(tree_dict[left_node_index]) == 0:
-        #     apply_node(left_node_index, (start, (start + end) // 2),
-        #                 0, 0, insert=False)
-
-        # if len(tree_dict[right_node_index]) == 0:
-        #     apply_node(right_node_index, ((start + end) // 2, end),
-        #                 0, 0, insert=False)
-
-        # left_node = tree_dict[left_node_index]
-
-
-        # right_node = tree_dict[right_node_index]
-
-        # gap = tree_dict[index][1][1] - tree_dict[index][1][0]
-
-        # if gap == 1:
-        #     return index + 1
         
 
         ## 왼쪽 노드가 비어있는 경우 error 발생
@@ -255,7 +231,7 @@ def rank(k):
 
 ##sum에서 값을 구할 때 사용했던 값들을 나중에도 사용해야함
 def sum(value):
-    global tree_dict
+    global tree_dict, price_menu_dict, menu_price_dict
 
     total_sum = 0
 
@@ -308,7 +284,7 @@ def sum(value):
 
 
 for i in range(Q):
-    command = list(input().split())
+    command = list(sys.stdin.readline().split())
     if command[0] == "init":
         init()
 
