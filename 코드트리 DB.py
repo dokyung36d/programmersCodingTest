@@ -4,7 +4,6 @@
 ## insert, delete는 순서대로 저장
 ## 해당되는 범위면 고려
 
-import bisect
 from collections import defaultdict
 
 Q = int(input())
@@ -84,13 +83,13 @@ def apply_node(index, gap, menu, price, insert=True):
     
     return
 
-def check_node_exist(index):
-    global tree_dict
+# def check_node_exist(index):
+#     global tree_dict
 
-    if len(tree_dict[index]) == 0:
-        return False
+#     if len(tree_dict[index]) == 0:
+#         return False
     
-    return True
+#     return True
 
 def insert(menu, price):
     global tree_dict
@@ -176,6 +175,7 @@ def delete(menu):
             index = 2 * index + 2
 
 
+
     return price
 
 
@@ -190,46 +190,55 @@ def rank(k):
 
     while True:
         if tree_dict[index][-1] == 1:
-            price_list = list(tree_dict[index][3].keys())
-            price_list.sort()
-            high_price = price_list[-1]
-            return tree_dict[index][3][high_price]
-            return list(tree_dict[index][2].keys())[0]
+            # price_list = list(tree_dict[index][3].keys())
+            # price_list.sort()
+            # high_price = price_list[-1]
+            # return tree_dict[index][3][high_price]
+
+            price = list(tree_dict[index][3].keys())[0]
+            return tree_dict[index][3][price]
         
-        start, end = tree_dict[index][1][0], tree_dict[index][1][1]
-        gap = end - start
+        # start, end = tree_dict[index][1][0], tree_dict[index][1][1]
+        # gap = end - start
         
 
         left_node_index = 2 * index + 1
-        right_node_index = 2 * index + 2
+        # right_node_index = 2 * index + 2
 
-        if len(tree_dict[left_node_index]) == 0:
-            apply_node(left_node_index, (start, (start + end) // 2),
-                        0, 0, insert=False)
+        # if len(tree_dict[left_node_index]) == 0:
+        #     apply_node(left_node_index, (start, (start + end) // 2),
+        #                 0, 0, insert=False)
 
-        if len(tree_dict[right_node_index]) == 0:
-            apply_node(right_node_index, ((start + end) // 2, end),
-                        0, 0, insert=False)
+        # if len(tree_dict[right_node_index]) == 0:
+        #     apply_node(right_node_index, ((start + end) // 2, end),
+        #                 0, 0, insert=False)
 
-        left_node = tree_dict[left_node_index]
-        right_node = tree_dict[right_node_index]
+        # left_node = tree_dict[left_node_index]
 
-        gap = tree_dict[index][1][1] - tree_dict[index][1][0]
+
+        # right_node = tree_dict[right_node_index]
+
+        # gap = tree_dict[index][1][1] - tree_dict[index][1][0]
 
         # if gap == 1:
         #     return index + 1
         
 
         ## 왼쪽 노드가 비어있는 경우 error 발생
-        if k <= left_node[-1]:
+
+        if len(tree_dict[left_node_index]) == 0:
+            index = 2 * index + 2
+            continue
+
+        if k <= tree_dict[left_node_index][-1]:
             # if k == 1 and left_node[-1] == 1:
             #     key_list = list(tree_dict[index][2].keys())
             #     key_list.sort()
             #     return key_list[0]
             index = 2 * index + 1
 
-        elif k > left_node[-1]:
-            k -= left_node[-1]
+        elif k > tree_dict[left_node_index][-1]:
+            k -= tree_dict[left_node_index][-1]
             index = 2 * index + 2
 
 
@@ -265,13 +274,13 @@ def sum(value):
         right_node_index = 2 * index + 2
 
 
-        if len(tree_dict[left_node_index]) == 0:
-            apply_node(left_node_index, (start, (start + end) // 2),
-                        0, 0, insert=False)
+        # if len(tree_dict[left_node_index]) == 0:
+        #     apply_node(left_node_index, (start, (start + end) // 2),
+        #                 0, 0, insert=False)
 
-        if len(tree_dict[right_node_index]) == 0:
-            apply_node(right_node_index, ((start + end) // 2, end),
-                        0, 0, insert=False)
+        # if len(tree_dict[right_node_index]) == 0:
+        #     apply_node(right_node_index, ((start + end) // 2, end),
+        #                 0, 0, insert=False)
 
         left_node = tree_dict[left_node_index]
         right_node = tree_dict[right_node_index]
@@ -280,10 +289,20 @@ def sum(value):
 
         if value >= mid_value:
             index = 2 * index + 2
-            total_sum += left_node[0]
+            if len(left_node) !=0:
+                total_sum += left_node[0]
+            else:
+                pass
+
+
+            if len(right_node) == 0:
+                return total_sum
 
         elif value < mid_value:
             index = 2 * index + 1
+
+            if len(left_node) == 0:
+                return total_sum
 
     return total_sum
 
