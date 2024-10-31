@@ -140,6 +140,7 @@ def delete(menu):
     global tree_dict
 
     if tree_dict[0][2][menu] == 0:
+        tree_dict[0][2].pop(menu)
         return 0
     
     price = tree_dict[0][2][menu]
@@ -149,8 +150,9 @@ def delete(menu):
     while True:
         local_menu_price_dict, local_price_menu_dict = tree_dict[index][2], tree_dict[index][3]
 
-        del local_menu_price_dict[menu]
-        del local_price_menu_dict[price]
+        local_menu_price_dict.pop(menu)
+        local_price_menu_dict.pop(price)
+
 
         tree_dict[index] = (tree_dict[index][0] - price, tree_dict[index][1],
                              local_menu_price_dict, local_price_menu_dict,
@@ -188,6 +190,10 @@ def rank(k):
 
     while True:
         if tree_dict[index][-1] == 1:
+            price_list = list(tree_dict[index][3].keys())
+            price_list.sort()
+            high_price = price_list[-1]
+            return tree_dict[index][3][high_price]
             return list(tree_dict[index][2].keys())[0]
         
         start, end = tree_dict[index][1][0], tree_dict[index][1][1]
