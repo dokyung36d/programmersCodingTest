@@ -19,6 +19,9 @@ for i in range(M):
     user_dict[i] = (row, col)
 
 exit_row, exit_col = map(int, input().split())
+exit_row -= 1
+exit_col -= 1
+
 exit_pos = (exit_row, exit_col)
 
 
@@ -51,7 +54,7 @@ def check_in_map(pos):
     return False 
 
 
-def rotate_rectangle(rectangle, exit_standard_pos):
+def rotate_rectangle(rectangle):
     num = len(rectangle)
 
     return_array = [[0 for _ in range(num)] for _ in range(num)]
@@ -69,10 +72,7 @@ def rotate_rectangle(rectangle, exit_standard_pos):
             return_array[roated_row][rotated_col] = rectangle[i][j]
 
 
-    ## exit만 따로 구하기
-    exit_rotated_pos = rotate(exit_standard_pos, center_point)
-
-    return return_array, exit_rotated_pos
+    return return_array
 
 def rotate(point, center_point):
     standard_point = (point[0] - center_point[0], point[1] - center_point[1])
@@ -84,21 +84,18 @@ def rotate(point, center_point):
     
     return return_point
 
-def get_sub_array(array, row_start, row_end, col_start, col_end):
+def get_sub_array(array, row_start, col_start, distance):
     return_array = []
 
-    rows = array[row_start:row_end]
+    rows = array[row_start:row_start + distance + 1]
 
     for row in rows:
-        return_array.append(row[col_start:col_end])
+        return_array.append(row[col_start:col_start + distance + 1])
 
     return return_array
 
 def get_smallest_rectangle():
-    global user_dict, exit_row, exit_col
-
-    exit_pos = (exit_row, exit_col)
-    closest_user = -1
+    global user_dict, exit_pos
 
     best_rectangle = (50, 50, 100)
 
@@ -179,15 +176,31 @@ def make_rectangle(user_pos, exit_pos):
 
     return (min_row, min_col, distance)
 
+def move_users():
+    global user_dict
 
-def move_user(user_pos, exit_pos):
+    for user in list(user_dict.keys()):
+        user_pos = user_dict[user]
+
+        moved_pos = move_user(user_pos)
+        user_dict[user] = moved_pos
+
+
+
+def move_user(user_pos):
+    global exit_pos, total_move
+
     distance = get_distance(user_pos, exit_pos)
 
+
+    ##상하좌우 순서대로 진행됨
     for direction in directions:
         moved_user_pos = (user_pos[0] + direction[0], user_pos[1] + direction[1])
 
         if not check_move(moved_user_pos):
             continue
+
+        total_move += 1
 
         moved_distance = get_distance(moved_user_pos, exit_pos)
 
@@ -198,33 +211,64 @@ def move_user(user_pos, exit_pos):
     return user_pos
 
 
-def apply_sub_array_to_main_array(main_array, sub_array):
-    pass
+def apply_sub_array_to_main_array(sub_array, start_row, start_col, distance):
+    global map_info
+
+    for i in range(distance):
+        for j in range(distance):
+            value = sub_array[i][j]
+
+            map_info[start_row + i][start_col + j] = value
+
+
+def rotate_user_and_exit(row_start, col_start, distance):
+    global user_dict, exit_pos
+
+    rotate_users = []
+    
+    ##Check user in rectangle
+    for user in list(user_dict.keys()):
+        user_pos = user_dict[user]
+
+        if not (row_start <= user_pos[0] < row_start + distance and col_start <= user_pos[1] < col_start + distance):
+            continue
+        rotate_users.append(user)
+
+    center_point = (row_start + (distance - 1) / 2, col_start + (distance - 1) / 2)
+
+    for user in rotate_users:
+        user_pos = user_dict[user]
+        rotated_user_pos = rotate(user_pos, center_point)
+
+        user_dict[user] = rotated_user_pos
+
+    ##exit는 항상 rectangle 내부에 존재함
+    rotated_exit_pos = rotate(exit_pos, center_point)
+    exit_pos = rotated_exit_pos
 
 
 total_move = 0
 
-for _ in range(K):
-    for user in list(user_dict.keys()):
-        user_pos = user_dict[user]
+# for _ in range(K):
+#     for user in list(user_dict.keys()):
+#         user_pos = user_dict[user]
 
-        moved_user_pos = move_user(user_pos, exit_pos)
+#         moved_user_pos = move_user(user_pos, exit_pos)
 
-        if user_pos != moved_user_pos:
-            total_move += 1
+#         if user_pos != moved_user_pos:
+#             total_move += 1
 
-        if moved_user_pos == exit_pos:
-            del user_dict[user]
+#         if moved_user_pos == exit_pos:
+#             del user_dict[user]
+
+
     
-    
-    rectangle = get_smallest_rectangle()
-    row_start, col_start, distance = rectangle[0], rectangle[1], rectangle[2]
+rectangle = get_smallest_rectangle()
+row_start, col_start, distance = rectangle[0], rectangle[1], rectangle[2]
 
-    sub_array = get_sub_array(row_start, row_start + distance, col_start, col_start + distance)
-    exit_standard_pos = (exit_row - row_start, exit_col - col_start)
+move_users()
 
-    rotated_sub_array, exit_rotated_pos = rotate_rectangle(sub_array, exit_standard_pos)
+sub_array = get_sub_array(map_info, row_start, col_start, distance)
 
-    exit_rotated_pos = (exit_rotated_pos[0] + row_start, exit_rotated_pos[1] + col_start)
-    exit_pos = exit_rotated_pos
-
+rotated_sub_array = rotate_rectangle(sub_array)
+apply_sub_array_to_main_array(rotated_sub_array, row_start, col_start, distance)
