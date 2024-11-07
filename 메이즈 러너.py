@@ -137,16 +137,19 @@ def make_rectangle(user_pos, exit_pos):
 
     ## 동일한 행인 경우
     if user_pos[0] == exit_pos[0]:
-        lower_row = user_pos[0] - row
-        higher_row = user_pos[0] + row
+        lower_row = user_pos[0] - distance
+        higher_row = user_pos[0] + distance
 
-        ##위로 정사각형 생성 
-        if 0 <= lower_row < N:
-            return (lower_row, min(user_pos[1], exit_pos[1]), distance)
+        ## lower_row가 0보다 작으면 0, 
+        return (max(0, lower_row), min(user_pos[1], exit_pos[1]), distance)
+
+        # ##위로 정사각형 생성 
+        # if 0 <= lower_row < N:
+        #     return (lower_row, min(user_pos[1], exit_pos[1]), distance)
         
-        ##아래로 정사각형 생성
-        if 0 <= higher_row < N:
-            return (higher_row, min(user_pos[1], exit_pos[1]), distance)
+        # ##아래로 정사각형 생성
+        # if 0 <= higher_row < N:
+        #     return (user_pos[0], min(user_pos[1], exit_pos[1]), distance)
         
         return False
 
@@ -156,20 +159,22 @@ def make_rectangle(user_pos, exit_pos):
         left_col = user_pos[1] - distance
         right_col = user_pos[1] + distance
 
-        if 0 <= left_col < N:
-            return (min(user_pos[0], user_pos[0]), left_col, distance)
+        return (min(user_pos[0], exit_pos[0]), max(0, left_col), distance)
+
+        # if 0 <= left_col < N:
+        #     return (min(user_pos[0], user_pos[0]), left_col, distance)
         
-        if 0 <= right_col < N:
-            return (min(user_pos[0], exit_pos[0]), right_col, distance)
+        # if 0 <= right_col < N:
+        #     return (min(user_pos[0], exit_pos[0]), user_pos[1], distance)
         
-        return False
+        # return False
 
     ## 동일한 행, 열이 아닌 경우
-    min_row = min(user_pos[0], user_pos[0])
+    min_row = min(user_pos[0], exit_pos[0])
     min_col = min(user_pos[1], exit_pos[1])
 
     ##더 큰 값이 직사각형 한 변의 길이가 됨.
-    distance = max(min_row, min_col)
+    distance = max(abs(user_pos[0] - exit_pos[0]), abs(user_pos[1] - exit_pos[1]))
 
     if not check_in_map((min_row + distance, min_col + distance)):
         return False
@@ -177,13 +182,16 @@ def make_rectangle(user_pos, exit_pos):
     return (min_row, min_col, distance)
 
 def move_users():
-    global user_dict
+    global user_dict, exit_pos
 
     for user in list(user_dict.keys()):
         user_pos = user_dict[user]
 
         moved_pos = move_user(user_pos)
         user_dict[user] = moved_pos
+
+        if moved_pos == exit_pos:
+            del user_dict[user]
 
 
 
@@ -200,11 +208,10 @@ def move_user(user_pos):
         if not check_move(moved_user_pos):
             continue
 
-        total_move += 1
-
         moved_distance = get_distance(moved_user_pos, exit_pos)
 
         if moved_distance < distance:
+            total_move += 1
             return moved_user_pos
 
     ##모든 방향으로 이동이 불가능한 경우
@@ -214,8 +221,8 @@ def move_user(user_pos):
 def apply_sub_array_to_main_array(sub_array, start_row, start_col, distance):
     global map_info
 
-    for i in range(distance):
-        for j in range(distance):
+    for i in range(distance + 1):
+        for j in range(distance + 1):
             value = sub_array[i][j]
 
             map_info[start_row + i][start_col + j] = value
@@ -230,11 +237,11 @@ def rotate_user_and_exit(row_start, col_start, distance):
     for user in list(user_dict.keys()):
         user_pos = user_dict[user]
 
-        if not (row_start <= user_pos[0] < row_start + distance and col_start <= user_pos[1] < col_start + distance):
+        if not (row_start <= user_pos[0] <= row_start + distance and col_start <= user_pos[1] <= col_start + distance):
             continue
         rotate_users.append(user)
 
-    center_point = (row_start + (distance - 1) / 2, col_start + (distance - 1) / 2)
+    center_point = (row_start + (distance) / 2, col_start + (distance) / 2)
 
     for user in rotate_users:
         user_pos = user_dict[user]
@@ -262,13 +269,17 @@ total_move = 0
 #             del user_dict[user]
 
 
-    
-rectangle = get_smallest_rectangle()
-row_start, col_start, distance = rectangle[0], rectangle[1], rectangle[2]
+for _ in range(K):
+    move_users()
 
-move_users()
+    rectangle = get_smallest_rectangle()
+    row_start, col_start, distance = rectangle[0], rectangle[1], rectangle[2]
 
-sub_array = get_sub_array(map_info, row_start, col_start, distance)
+    sub_array = get_sub_array(map_info, row_start, col_start, distance)
 
-rotated_sub_array = rotate_rectangle(sub_array)
-apply_sub_array_to_main_array(rotated_sub_array, row_start, col_start, distance)
+    rotated_sub_array = rotate_rectangle(sub_array)
+    apply_sub_array_to_main_array(rotated_sub_array, row_start, col_start, distance)
+    rotate_user_and_exit(row_start, col_start, distance)
+
+print(total_move)
+print(exit_pos[0] + 1, exit_pos[1] + 1)
