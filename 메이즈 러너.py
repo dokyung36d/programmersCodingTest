@@ -170,16 +170,25 @@ def make_rectangle(user_pos, exit_pos):
         # return False
 
     ## 동일한 행, 열이 아닌 경우
-    min_row = min(user_pos[0], exit_pos[0])
-    min_col = min(user_pos[1], exit_pos[1])
+    max_row = max(user_pos[0], exit_pos[0])
+    max_col = max(user_pos[1], exit_pos[1])
 
     ##더 큰 값이 직사각형 한 변의 길이가 됨.
     distance = max(abs(user_pos[0] - exit_pos[0]), abs(user_pos[1] - exit_pos[1]))
 
-    if not check_in_map((min_row + distance, min_col + distance)):
-        return False
+    return (max(0, max_row - distance), max(0, max_col - distance), distance)
+    
+    # if min_row + distance >= N and min_col + distance >= N:
+    #     return (N - 1 - distance, N - 1 - distance, distance)
 
-    return (min_row, min_col, distance)
+    # if min_row + distance >= N:
+    #     return (N - 1 - distance, min_col, distance)
+
+    # elif min_col + distance >= N:
+    #     return (min_row, N - 1 - distance, distance)
+
+    # else:
+    #     return (min_row, min_col, distance)
 
 def move_users():
     global user_dict, exit_pos
@@ -271,6 +280,9 @@ total_move = 0
 
 for _ in range(K):
     move_users()
+
+    if not user_dict.keys():
+        break
 
     rectangle = get_smallest_rectangle()
     row_start, col_start, distance = rectangle[0], rectangle[1], rectangle[2]
