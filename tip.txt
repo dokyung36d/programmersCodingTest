@@ -1,0 +1,2 @@
+1. 너무 복잡한 경우는 직접 구현하기 보다는 dfs, bfs로 풀자
+2. dict자체를 bfs, dfs의 Node로 넣으면 reference 문제가 발생할 가능성이 크다.
