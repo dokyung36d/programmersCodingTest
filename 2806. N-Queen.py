@@ -71,11 +71,11 @@ def setQueen(startIndices, numRemainQueen, queenIndices):
 
     for i in range(startIndices[0], n):
         for j in range(startIndices[1], n):
-            removedIndices = queen((i, j))
+            # removedIndices = queen((i, j))
 
 
             ## if already chose
-            if not checkCompatibleWithAnotherQueen(removedIndices, queenIndices):
+            if not checkCompatibleWithAnotherQueenByIndex((i, j), queenIndices):
                 continue
 
             if numRemainQueen == 1:
@@ -95,16 +95,6 @@ def checkIndex(indices):
         return False
 
     return True
-
-def existInSortedList(sortedList, value):
-    index = bisect.bisect_left(sortedList, value)
-    if len(sortedList) == 0:
-        return False
-
-    if sortedList[index] == value:
-        return True
-
-    return False
 
 def getNextIndex(indices):
     global n
@@ -129,20 +119,32 @@ def checkCompatibleWithAnotherQueen(removedIndices, queenIndices):
 
     return True
 
-cnt = 0
-n = int(input())
-setQueen((0, 0), n, [])
-print(cnt)
+def checkCompatibleWithAnotherQueenByIndex(curIndex, queenIndices):
+    for queenIndex in queenIndices:
+        rowDelta, colDelta = queenIndex[0] - curIndex[0], queenIndex[1] - curIndex[1]
 
-# T = int(input())
-#
-# for _ in range(1, T + 1):
-#     n = int(input())
-#     cnt = 0
-#     setQueen((0, 0), n, defaultdict(int))
-#
-#     print(f"#{_} {cnt}")
-#
+        if rowDelta == 0 or colDelta == 0:
+            return False
+
+        if abs(rowDelta) == abs(colDelta):
+            return False
+
+    return True
+
+# cnt = 0
+# n = int(input())
+# setQueen((0, 0), n, [])
+# print(cnt)
+
+T = int(input())
+
+for _ in range(1, T + 1):
+    n = int(input())
+    cnt = 0
+    setQueen((0, 0), n, [])
+
+    print(f"#{_} {cnt}")
+
 # removedIndices = queen((2, 1))
 #
 # for removedIndex in removedIndices:
