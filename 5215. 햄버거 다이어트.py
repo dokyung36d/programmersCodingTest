@@ -3,11 +3,15 @@
 import bisect
 
 def removeDescInList(calorieList, scoreList):
-    for i in range(len(scoreList) - 1, 0, -1):
-        if scoreList[i - 1] > scoreList[i]:
-            calorieList.pop(i)
-            scoreList.pop(i)
+    index = 0
+    while index != len(calorieList) - 1:
+        if scoreList[index] >= scoreList[index + 1]:
+            scoreList.pop(index + 1)
+            calorieList.pop(index + 1)
 
+            continue
+
+        index += 1
     return calorieList, scoreList
 
 
@@ -33,13 +37,13 @@ for _ in range(T):
         calorieList.insert(index, calorie)
 
     if calorieList[0] > L:
-        print(0)
+        print(f"#{_ + 1} {0}")
         continue
     dpCalorie = [0, calorieList[0]]
     dpScore = [0, scoreList[0]]
 
     for i in range(1, N):
-        ##If one food's calorie exceeds L, no need to consider
+        #If one food's calorie exceeds L, no need to consider
         if calorieList[i] > L:
             break
 
@@ -49,7 +53,7 @@ for _ in range(T):
             newCalorie = dpCalorie[j] + calorieList[i]
             newScore = dpScore[j] + scoreList[i]
             if newCalorie > L:
-                continue
+                break
 
             index = bisect.bisect_left(insertList, (newCalorie, newScore))
             insertList.insert(index, (newCalorie, newScore))
@@ -70,7 +74,8 @@ for _ in range(T):
 
 
         dpCalorie, dpScore = removeDescInList(dpCalorie, dpScore)
-    print(f"#{_ + 1} {dpScore[-1]}")
 
+    # index = bisect.bisect_left(dpCalorie, L)
+    print(f"#{_ + 1} {dpScore[-1]}")
 
 
