@@ -38,7 +38,7 @@ def dfs(startPoint, graphDict, visited, length):
             maxLength = newLength
 
     if flag == 0:
-        return 1
+        return length - 1
 
     return maxLength
 
