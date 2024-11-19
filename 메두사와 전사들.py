@@ -9,13 +9,18 @@ def calculateDistance(pos1, pos2):
     return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
 
 def checkIndex(pos):
-    if pos[0] < 0 or pos[0] > N or pos[1] < 0 or pos[1] > N:
+    global N
+
+    if pos[0] < 0 or pos[0] >= N or pos[1] < 0 or pos[1] >= N:
         return False
     
     return True
 
 def getDirections(pos, startPos):
     deltaRow, deltaCol = pos[0] - startPos[0], pos[1] - startPos[1]
+
+    if deltaRow == 0 and deltaCol == 0:
+        return []
 
     if deltaRow == 0:
         return [(0, int(deltaCol / abs(deltaCol)))]
@@ -29,10 +34,10 @@ def getDirections(pos, startPos):
         #                                               (int(deltaRow / abs(deltaRow)), int(deltaCol / abs(deltaCol))))]
     
     if abs(deltaRow) > abs(deltaCol):
-        return [(int(deltaRow / abs(deltaRow), 0)), (int(deltaRow / abs(deltaRow), int(deltaCol / abs(deltaCol))))]
+        return [(int(deltaRow / abs(deltaRow)), 0), (int(deltaRow / abs(deltaRow)), int(deltaCol / abs(deltaCol)))]
     
     if abs(deltaRow) < abs(deltaCol):
-        return [(0, int(deltaCol / abs(deltaCol))), (int(deltaRow / abs(deltaRow), int(deltaCol / abs(deltaCol))))]
+        return [(0, int(deltaCol / abs(deltaCol))), (int(deltaRow / abs(deltaRow)), int(deltaCol / abs(deltaCol)))]
     
     # if abs(deltaRow) > abs(deltaCol):
     #     return [(int(deltaRow / abs(deltaRow)), 0)]
@@ -50,18 +55,22 @@ def getSideDirections(mainDirection):
         return [(mainDirection[0], -1), (mainDirection[0], 1)]
     
 def moveMedusa():
-    global medusaPos, parkCol
+    global medusaPos, parkPos, mapInfo
     bestPos = medusaPos
     bestDistance = calculateDistance(medusaPos, parkPos)
 
     directionDict = {0 : (-1, 0), 1 : (1, 0), 2 : (0, -1), 3 : (0, 1)}
 
     for i in range(4):
+        print("hellor")
         direction = directionDict[i]
 
         movedPos = (medusaPos[0] + direction[0], medusaPos[1] + direction[1])
 
         if not checkIndex(movedPos):
+            continue
+
+        if mapInfo[movedPos[0]][movedPos[1]] == 1:
             continue
 
         movedDistance = calculateDistance(movedPos, parkPos)
@@ -85,7 +94,7 @@ def medusa():
         directions.append(directionDict[i])
         directions.extend(getSideDirections(directionDict[i]))
 
-        numRockerSoldier, rockedSoldierList = medusaWatch(directions)
+        numRockerSoldier, rockedSoldierList = medusaWatch(directions, directionDict[i])
         if numRockerSoldier > maxNumRockedSoldier:
             maxNumRockedSoldier = numRockerSoldier
             maxNumMedusaDirection = directions
@@ -171,25 +180,27 @@ def soldierMove(rockedSoldierList, medusaDirections, directionDict, numMoved, nu
         if soldier in rockedSoldierList:
             continue
 
-        distance = calculateDistance(soldier, medusaPos)
+        distance = calculateDistance(soldier[1], medusaPos)
         moveFlag = 0
         attackFlag = 0
+        bestDistance = distance
+        bestPos = soldier[1]
 
         for i in range(4):
             direction = directionDict[i]
-            movedPos = addTwoTuple(soldier, direction)
+            movedPos = addTwoTuple(soldier[1], direction)
 
             if not checkIndex(movedPos):
                 continue
-
-            if not checkAvailablePos(movedPos, medusaPos, medusaDirections):
+            
+            if not checkAvailablePos(movedPos, medusaPos, rockedSoldierList):
                 continue
 
             movedDistance = calculateDistance(movedPos, medusaPos)
             if movedDistance < distance:
                 moveFlag = 1
-                distance = movedDistance
-                soldier = movedPos
+                bestDistance = movedDistance
+                bestPos = movedPos
 
             if movedDistance == 0:
                 attackFlag = 1
@@ -202,8 +213,8 @@ def soldierMove(rockedSoldierList, medusaDirections, directionDict, numMoved, nu
         if attackFlag == 1:
             continue
 
-        index = bisect.bisect_left(movedSoldierList, (distance, movedPos))
-        movedSoldierList.insert(index, (distance, movedPos))
+        index = bisect.bisect_left(movedSoldierList, (bestDistance, bestPos))
+        movedSoldierList.insert(index, (bestDistance, bestPos))
 
     soldierList = movedSoldierList
 
@@ -257,3 +268,5 @@ while True:
 
     numMoved, numAttacked = soldierMove(rockedSoldierList, maxDirection, firstMoveDirection, numMoved, numAttacked)
     numMoved, numAttacked = soldierMove(rockedSoldierList, maxDirection, secondMoveDirection, numMoved, numAttacked)
+
+    print(numMoved, numAttacked)
