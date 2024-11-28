@@ -54,8 +54,8 @@ def getSideDirections(mainDirection):
     if mainDirection[1] == 0:
         return [(mainDirection[0], -1), (mainDirection[0], 1)]
     
-def moveMedusa(numAttacked):
-    global medusaPos, path, pathIndex
+def moveMedusa():
+    global medusaPos, path, pathIndex, soldierList
 
     pathIndex += 1
     medusaPos = path[pathIndex]
@@ -65,9 +65,6 @@ def moveMedusa(numAttacked):
 
         if medusaPos == soldierPos:
             soldierList.pop(i)
-            numAttacked += 1
-
-    return numAttacked
 
 def medusa():
     global medusaPos, soldierList
@@ -130,6 +127,9 @@ def blindByRockedSoldier(pos, rockedSoldierList):
 def checkBelong(pos, originPos, originDirections):
     directions = getDirections(pos, originPos)
 
+    if pos == originPos:
+        return False
+    
     for direction in directions:
         if direction not in originDirections:
             return False
@@ -188,19 +188,21 @@ def soldierMove(rockedSoldierList, medusaDirections, directionDict, numMoved, nu
             if not checkIndex(movedPos):
                 continue
             
-            if not checkAvailablePos(movedPos, medusaPos, rockedSoldierList):
+            if not checkAvailablePos(movedPos, medusaDirections, rockedSoldierList):
                 continue
 
             movedDistance = calculateDistance(movedPos, medusaPos)
+
             if movedDistance < distance:
                 moveFlag = 1
                 bestDistance = movedDistance
                 bestPos = movedPos
-
-            if movedDistance == 0:
-                attackFlag = 1
-                numAttacked += 1
                 break
+
+
+        if movedPos == medusaPos:
+            attackFlag = 1
+            numAttacked += 1
 
         if moveFlag == 1:
             numMoved += 1
@@ -246,7 +248,7 @@ def getFastestPath():
 
             if movedPos == parkPos:
                 return visited + [movedPos]
-
+            
             newNode = (movedPos, visited + [movedPos])
             queue.append(newNode)
 
@@ -258,16 +260,23 @@ medusaPos = (medusaRow, medusaCol)
 parkPos = (parkRow, parkCol)
 
 soldierList = []
-soldierPosList = list(map(int, input().split()))
-soldierList.append((calculateDistance((medusaRow, medusaCol), (soldierPosList[0], soldierPosList[1])),
-                    (soldierPosList[0], soldierPosList[1])))
 
-for i in range(2, 2 * M, 2):
-    soldierPos = (soldierPosList[i], soldierPosList[i + 1])
-    distance = calculateDistance((medusaRow, medusaCol), soldierPos)
+if M != 0:
+    soldierPosList = list(map(int, input().split()))
+    soldierList.append((calculateDistance((medusaRow, medusaCol), (soldierPosList[0], soldierPosList[1])),
+                        (soldierPosList[0], soldierPosList[1])))
 
-    index = bisect.bisect_left(soldierList, (distance, soldierPos))
-    soldierList.insert(index, (distance, soldierPos))
+    for i in range(2, 2 * M, 2):
+        soldierPos = (soldierPosList[i], soldierPosList[i + 1])
+        distance = calculateDistance((medusaRow, medusaCol), soldierPos)
+
+        index = bisect.bisect_left(soldierList, (distance, soldierPos))
+        soldierList.insert(index, (distance, soldierPos))
+else:
+    soldierPosList = list(map(int, input().split()))
+    soldierList = []
+    soldierPosList = []
+
 
 mapInfo = []
 for _ in range(N):
@@ -279,25 +288,29 @@ secondMoveDirection = {0 : (0, -1), 1 : (0, 1), 2 : (-1, 0), 3 : (1, 0)}
 
 path = getFastestPath()
 pathIndex = 0
-
 def solution():
     global medusaPos
 
-    for i in range(len(path)):
-        if i == len(path) - 1:
+
+    if path == -1:
+        print(path)
+        return
+    for i in range(len(path) - 1):
+        if i == len(path) - 2:
             print(0)
             return
         
-        numMoved = 0
-        numAttacked = 0
-
-        numAttacked = moveMedusa(numAttacked)
+        moveMedusa()
 
         if len(soldierList) == 0:
-            print(0, numAttacked, 0)
+            print(0, 0, 0)
             continue
 
         maxDirection, rockedSoldierList = medusa()
+
+        numMoved = 0
+        numAttacked = 0
+
 
         numMoved, numAttacked = soldierMove(rockedSoldierList, maxDirection, firstMoveDirection, numMoved, numAttacked)
         numMoved, numAttacked = soldierMove(rockedSoldierList, maxDirection, secondMoveDirection, numMoved, numAttacked)
