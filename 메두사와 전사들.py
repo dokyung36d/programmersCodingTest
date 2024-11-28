@@ -54,11 +54,20 @@ def getSideDirections(mainDirection):
     if mainDirection[1] == 0:
         return [(mainDirection[0], -1), (mainDirection[0], 1)]
     
-def moveMedusa():
+def moveMedusa(numAttacked):
     global medusaPos, path, pathIndex
 
-    medusaPos = path[pathIndex]
     pathIndex += 1
+    medusaPos = path[pathIndex]
+
+    for i in range(len(soldierList) - 1, -1, -1):
+        soldierPos = soldierList[i][1]
+
+        if medusaPos == soldierPos:
+            soldierList.pop(i)
+            numAttacked += 1
+
+    return numAttacked
 
 def medusa():
     global medusaPos, soldierList
@@ -130,6 +139,9 @@ def checkBelong(pos, originPos, originDirections):
 def checkAvailablePos(pos, medusaDirection, rockedSoldierList):
     global medusaPos
 
+    if pos == medusaPos:
+        return True
+
     if not checkBelong(pos, medusaPos, medusaDirection):
         return True
     
@@ -146,17 +158,21 @@ def soldierMove(rockedSoldierList, medusaDirections, directionDict, numMoved, nu
 
     ##can error happen
     ##At Least one Soldier is captured
+    rockedSoldierPosList = []
     movedSoldierList = []
     movedSoldierList.append((calculateDistance(rockedSoldierList[0][0], medusaPos), rockedSoldierList[0][0]))
+    rockedSoldierPosList.append(rockedSoldierList[0][0])
 
-    for i in range(1, len(movedSoldierList)):
+    for i in range(1, len(rockedSoldierList)):
         value = (calculateDistance(rockedSoldierList[i][0], medusaPos), rockedSoldierList[i][0])
         index = bisect.bisect_left(movedSoldierList, value)
         movedSoldierList.insert(index, value)
 
+        rockedSoldierPosList.append(rockedSoldierList[i][0])
+
 
     for soldier in soldierList:
-        if soldier in rockedSoldierList:
+        if soldier[1] in rockedSoldierPosList:
             continue
 
         distance = calculateDistance(soldier[1], medusaPos)
@@ -272,12 +288,16 @@ def solution():
             print(0)
             return
         
-        moveMedusa()
-
-        maxDirection, rockedSoldierList = medusa()
-
         numMoved = 0
         numAttacked = 0
+
+        numAttacked = moveMedusa(numAttacked)
+
+        if len(soldierList) == 0:
+            print(0, numAttacked, 0)
+            continue
+
+        maxDirection, rockedSoldierList = medusa()
 
         numMoved, numAttacked = soldierMove(rockedSoldierList, maxDirection, firstMoveDirection, numMoved, numAttacked)
         numMoved, numAttacked = soldierMove(rockedSoldierList, maxDirection, secondMoveDirection, numMoved, numAttacked)
