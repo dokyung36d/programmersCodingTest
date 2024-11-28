@@ -55,31 +55,10 @@ def getSideDirections(mainDirection):
         return [(mainDirection[0], -1), (mainDirection[0], 1)]
     
 def moveMedusa():
-    global medusaPos, parkPos, mapInfo
-    bestPos = medusaPos
-    bestDistance = calculateDistance(medusaPos, parkPos)
+    global medusaPos, path, pathIndex
 
-    directionDict = {0 : (-1, 0), 1 : (1, 0), 2 : (0, -1), 3 : (0, 1)}
-
-    for i in range(4):
-        print("hellor")
-        direction = directionDict[i]
-
-        movedPos = (medusaPos[0] + direction[0], medusaPos[1] + direction[1])
-
-        if not checkIndex(movedPos):
-            continue
-
-        if mapInfo[movedPos[0]][movedPos[1]] == 1:
-            continue
-
-        movedDistance = calculateDistance(movedPos, parkPos)
-
-        if movedDistance < bestDistance:
-            bestDistance = movedDistance
-            bestPos = movedPos
-
-    return bestPos
+    medusaPos = path[pathIndex]
+    pathIndex += 1
 
 def medusa():
     global medusaPos, soldierList
@@ -225,7 +204,37 @@ def soldierMove(rockedSoldierList, medusaDirections, directionDict, numMoved, nu
 def addTwoTuple(tuple1, tuple2):
     return (tuple1[0] + tuple2[0], tuple1[1] + tuple2[1])
 
-        
+def getFastestPath():
+    global medusaPos, parkPos, firstMoveDirection, mapInfo
+
+    ## CurrentPos, visited
+    queue = [(medusaPos, [medusaPos])]
+
+    ##이동에 가중치가 없으므로 bfs 문제임
+    while queue:
+        node = queue.pop(0)
+        currentPos, visited = node[0], node[1]
+
+        for i in range(4):
+            direction = firstMoveDirection[i]
+            movedPos = addTwoTuple(currentPos, direction)
+
+            if not checkIndex(movedPos):
+                continue
+
+            if movedPos in visited:
+                continue
+
+            if mapInfo[movedPos[0]][movedPos[1]] == 1:
+                continue
+
+            if movedPos == parkPos:
+                return visited + [movedPos]
+
+            newNode = (movedPos, visited + [movedPos])
+            queue.append(newNode)
+
+    return -1
 
 
 medusaRow, medusaCol, parkRow, parkCol = map(int, input().split())
@@ -252,21 +261,28 @@ for _ in range(N):
 firstMoveDirection = {0 : (-1, 0), 1 : (1, 0), 2 : (0, -1), 3 : (0, 1)}
 secondMoveDirection = {0 : (0, -1), 1 : (0, 1), 2 : (-1, 0), 3 : (1, 0)}
 
-while True:
-    movedMedusaPos = moveMedusa()
+path = getFastestPath()
+pathIndex = 0
 
-    if movedMedusaPos == medusaPos:
-        print(-1)
-        break
+def solution():
+    global medusaPos
 
-    medusaPos = movedMedusaPos
+    for i in range(len(path)):
+        if i == len(path) - 1:
+            print(0)
+            return
+        
+        moveMedusa()
 
-    maxDirection, rockedSoldierList = medusa()
+        maxDirection, rockedSoldierList = medusa()
 
-    numMoved = 0
-    numAttacked = 0
+        numMoved = 0
+        numAttacked = 0
 
-    numMoved, numAttacked = soldierMove(rockedSoldierList, maxDirection, firstMoveDirection, numMoved, numAttacked)
-    numMoved, numAttacked = soldierMove(rockedSoldierList, maxDirection, secondMoveDirection, numMoved, numAttacked)
+        numMoved, numAttacked = soldierMove(rockedSoldierList, maxDirection, firstMoveDirection, numMoved, numAttacked)
+        numMoved, numAttacked = soldierMove(rockedSoldierList, maxDirection, secondMoveDirection, numMoved, numAttacked)
 
-    print(numMoved, numAttacked)
+        print(numMoved, len(rockedSoldierList), numAttacked)
+
+
+solution()
