@@ -4,11 +4,36 @@ def solution(expressions):
     infoExpressions, solveExpressions= divideExpressions(expressions)
 
     validCandidateList = validateCandidates(infoExpressions, candidateList)
-    return validCandidateList
+    
+    answerList = [] 
+    for solveExpression in solveExpressions:
+        result = getSolveProblem(solveExpression, validCandidateList)
+        answerList.append(result)
+        
+    return answerList
     
     
     answer = convertXtoTen(5, 8)
     return answer
+
+def getSolveProblem(expression, validCandidateList):
+    flag = 0
+    base = decomposeProblemExpression(expression, validCandidateList[0])
+    baseConverted = convertTentoX(base, validCandidateList[0])
+    
+    for i in range(1, len(validCandidateList)):
+        result = decomposeProblemExpression(expression, validCandidateList[i])
+        resultConverted = convertTentoX(result, validCandidateList[i])
+        
+        if resultConverted != baseConverted:
+            flag = 1
+            break
+            
+    if flag == 0:
+        return expression[:-1] + str(baseConverted)
+    else:
+        return expression[:-1] + "?"
+            
 
 def validateCandidates(expressions, candidateList):
     validatedCandidateList = []
@@ -50,8 +75,20 @@ def decomposeInfoExpression(expression, num):
             return True
         return False
     
-def decomposeProblemExpression(expressions):
-    pass
+def decomposeProblemExpression(expression, num):
+    expression = list(expression.split(" "))
+    firstNum = int(expression[0])
+    operator = expression[1]
+    secondNum = int(expression[2])
+    
+    firstNumConverted = convertXtoTen(firstNum, num)
+    secondNumConverted = convertXtoTen(secondNum, num)
+
+    if operator == "+":
+        return firstNumConverted + secondNumConverted
+    
+    if operator == "-":
+        return firstNumConverted - secondNumConverted
     
 def divideExpressions(expressions):
     infoExpression = []
@@ -78,6 +115,19 @@ def convertXtoTen(num : int, x : int):
         
     return result
 
+def convertTentoX(num : int, x : int):
+    result = 0
+    
+    multiplyNum = 1
+    while num != 0:
+        endNum = num % x
+        result += (multiplyNum * endNum)
+        
+        multiplyNum *= 10
+        num = num // x
+        
+    return result
+
 def getMaxNum(expressions):
     maxNum = 1
     for expression in expressions:
@@ -90,6 +140,5 @@ def getMaxNum(expressions):
                 continue
             if int(max(info)) > maxNum:
                 maxNum = int(max(info))
-
+                
     return maxNum
-        
