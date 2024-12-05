@@ -50,8 +50,43 @@ def applySmallMatrixToBigMatrix(bigMatrix, smallMatrix, rowStart, ColStart, M):
 
     return bigMatrix
 
+def bfsInTimeWall(startPoint, dest, timeWallMatrix, M):
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    visitedMatrix = [[0 for _ in range(3 * M)] for _ in range(3 * M)]
+    visitedMatrix[startPoint[0]][startPoint[1]] = 1
 
-def moveInTimeWall(pos, direction, timeWallMatrix):
+    queue = [(startPoint, 0, [startPoint])]
+
+    while queue:
+        node = queue.pop(0)
+        pos, depth, visited = node[0], node[1], node[2]
+
+        for i in range(4):
+            direction = directions[i]
+            
+            if not checkIndexInTimeWallMatrix((pos[0] + direction[0], pos[1] + direction[1]), M):
+                continue
+
+            movedPos = moveInTimeWall(pos, direction, timeWallMatrix, M)
+
+            if timeWallMatrix[movedPos[0]][movedPos[1]] == 1:
+                continue
+
+            if visitedMatrix[movedPos[0]][movedPos[1]] != 0:
+                continue
+
+            if movedPos == dest:
+                return depth + 1, visited
+            
+            visitedMatrix[movedPos[0]][movedPos[1]] = 1
+            newNode = (movedPos, depth + 1, visited + [movedPos])
+            queue.append(newNode)
+
+    return -1, visitedMatrix
+
+
+
+def moveInTimeWall(pos, direction, timeWallMatrix, M):
     
     movedPos = (pos[0] + direction[0], pos[1] + direction[1])
 
@@ -60,7 +95,7 @@ def moveInTimeWall(pos, direction, timeWallMatrix):
     
 
     ## 2, 4 사분면에 존재하는 경우
-    if checkDiagonalInTimeWallMatrix(movedPos):
+    if checkDiagonalInTimeWallMatrix(movedPos, M):
         return (pos[1], pos[0])
     
     return (3 * M - pos[1] - 1, 3 * M - pos[0] - 1)
@@ -147,9 +182,14 @@ def solution():
 
     timeWallMatrix, timeWallStartPoint = makeTimeWallMatrix(timeWallInfos, M)
 
-    timeWallDest, mapStartPoint = getExitInTimeWall(N, mapMatrix, M)
-    print(mapDest, timeWallStartPoint)
-    print(timeWallDest, mapStartPoint)
+    mapStartPoint, timeWallDest = getExitInTimeWall(N, mapMatrix, M)
+    timeWallStartPoint = (timeWallStartPoint[0] + M, timeWallStartPoint[1] + M)
+
+    turnInTimeWall, visited = bfsInTimeWall(timeWallStartPoint, timeWallDest, timeWallMatrix, M)
+    print(turnInTimeWall)
+    for visit in visited:
+        print(visit)
+    print(moveInTimeWall((0, 3), (0, -1), timeWallMatrix, M))
 # for row in timeWallMatrix:
 #     print(row)
 # print(moveInTimeWall((1, 5), (0, 1), timeWallMatrix))
