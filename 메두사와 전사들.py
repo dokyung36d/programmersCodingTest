@@ -91,7 +91,7 @@ def medusa():
 
 
 def medusaWatch(medusaDirections, medusaMainDirection):
-    global medusaPos
+    global medusaPos, soldierList
 
     num = 0
     rockedSoldierList = []
@@ -224,6 +224,7 @@ def addTwoTuple(tuple1, tuple2):
 
 def getFastestPath():
     global medusaPos, parkPos, firstMoveDirection, mapInfo
+    visitedMatrix = [[0 for _ in range(N)] for _ in range(N)]
 
     ## CurrentPos, visited
     queue = [(medusaPos, [medusaPos])]
@@ -246,11 +247,15 @@ def getFastestPath():
             if mapInfo[movedPos[0]][movedPos[1]] == 1:
                 continue
 
+            if visitedMatrix[movedPos[0]][movedPos[1]] == 1:
+                continue
+
             if movedPos == parkPos:
                 return visited + [movedPos]
             
             newNode = (movedPos, visited + [movedPos])
             queue.append(newNode)
+            visitedMatrix[movedPos[0]][movedPos[1]] = 1
 
     return -1
 
@@ -286,6 +291,7 @@ for _ in range(N):
 firstMoveDirection = {0 : (-1, 0), 1 : (1, 0), 2 : (0, -1), 3 : (0, 1)}
 secondMoveDirection = {0 : (0, -1), 1 : (0, 1), 2 : (-1, 0), 3 : (1, 0)}
 
+print("hello world")
 path = getFastestPath()
 pathIndex = 0
 def solution():
@@ -295,6 +301,7 @@ def solution():
     if path == -1:
         print(path)
         return
+    print("hello world")
     for i in range(len(path) - 1):
         if i == len(path) - 2:
             print(0)
