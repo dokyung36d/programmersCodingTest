@@ -1,23 +1,4 @@
-N, M, F = map(int, input().split())
-
-mapMatrix = []
-for _ in range(N):
-    newRow = list(map(int, input().split()))
-    mapMatrix.append(newRow)
-
-timeWallInfos = []
-for _ in range(5 * M):
-    newTimeWallInfo = list(map(int, input().split()))
-    timeWallInfos.append(newTimeWallInfo)
-
-spreadInfos = []
-for _ in range(F):
-    newSpreadInfo = list(map(int, input().split()))
-    spreadInfos.append(newSpreadInfo)
-
-
-def makeTimeWallMatrix(infos):
-    global M
+def makeTimeWallMatrix(infos, M):
 
     matrix = [[-1 for _ in range(3 * M)] for _ in range(3 * M)]
 
@@ -25,38 +6,41 @@ def makeTimeWallMatrix(infos):
     eastMatrix = []
     for i in range(0, M):
         eastMatrix.append(infos[i])
-    matrix = applySmallMatrixToBigMatrix(matrix, eastMatrix, M ,2 * M)
+    matrix = applySmallMatrixToBigMatrix(matrix, eastMatrix, M ,2 * M, M)
 
     ## West
     westMatrix = []
     for i in range(M, 2 * M):
         westMatrix.append(infos[i])
-    matrix = applySmallMatrixToBigMatrix(matrix, westMatrix, M, 0)
+    matrix = applySmallMatrixToBigMatrix(matrix, westMatrix, M, 0, M)
 
     ## South
     southMatrix = []
     for i in range(2 * M, 3 * M):
         southMatrix.append(infos[i])
-    matrix = applySmallMatrixToBigMatrix(matrix, southMatrix, 2 * M, M)
+    matrix = applySmallMatrixToBigMatrix(matrix, southMatrix, 2 * M, M, M)
 
     ## North
     northMatrix = []
     for i in range(3 * M, 4 * M):
         northMatrix.append(infos[i])
-    matrix = applySmallMatrixToBigMatrix(matrix, northMatrix, 0, M)
+    matrix = applySmallMatrixToBigMatrix(matrix, northMatrix, 0, M, M)
 
     ## Center
     centerMatrix = []
     for i in range(4 * M, 5 * M):
         centerMatrix.append(infos[i])
-    matrix = applySmallMatrixToBigMatrix(matrix, centerMatrix, M, M)
+
+        for j in range(len(infos[i])):
+            if infos[i][j] == 2:
+                startPoint = (i - 4 * M, j)
+    matrix = applySmallMatrixToBigMatrix(matrix, centerMatrix, M, M, M)
 
     
-    return matrix
+    return matrix, startPoint
     
 
-def applySmallMatrixToBigMatrix(bigMatrix, smallMatrix, rowStart, ColStart):
-    global M
+def applySmallMatrixToBigMatrix(bigMatrix, smallMatrix, rowStart, ColStart, M):
 
     for i in range(M):
         for j in range(M):
@@ -65,6 +49,7 @@ def applySmallMatrixToBigMatrix(bigMatrix, smallMatrix, rowStart, ColStart):
             bigMatrix[row][col] = smallMatrix[i][j]
 
     return bigMatrix
+
 
 def moveInTimeWall(pos, direction, timeWallMatrix):
     
@@ -82,8 +67,7 @@ def moveInTimeWall(pos, direction, timeWallMatrix):
     
 
 
-def checkDiagonalInTimeWallMatrix(pos):
-    global M
+def checkDiagonalInTimeWallMatrix(pos, M):
     if 0 <= pos[0] < M and 0 <= pos[1] < M:
         return True
     
@@ -92,17 +76,14 @@ def checkDiagonalInTimeWallMatrix(pos):
     
     return False
 
-def checkIndexInTimeWallMatrix(pos):
-    global M
+def checkIndexInTimeWallMatrix(pos, M):
 
     if 0 <= pos[0] < 3 * M and 0 <= pos[1] < 3 * M:
         return True
     
     return False
 
-def getExitInTimeWall():
-    global N, mapMatrix
-
+def getExitInTimeWall(N, mapMatrix, M):
     for i in range(N):
         flag = 0
         for j in range(N):
@@ -113,7 +94,6 @@ def getExitInTimeWall():
         
         if flag == 1:
             break
-    print(timeWallStartPos)
 
     ##윗변, 아랫변 탐색
     for i in range(M):
@@ -136,15 +116,42 @@ def getExitInTimeWall():
         
         if mapMatrix[rightPos[0]][rightPos[1]] == 0:
             return rightPos, (M + i, 3 * M - 1)
+        
 
-    
+
+def solution():
+    N, M, F = map(int, input().split())
+
+    mapMatrix = []
+    for i in range(N):
+        newRow = list(map(int, input().split()))
+        mapMatrix.append(newRow)
+
+        for j in range(N):
+            if newRow[j] == 4:
+                mapDest = (i, j)
+
+    timeWallInfos = []
+    for _ in range(5 * M):
+        newTimeWallInfo = list(map(int, input().split()))
+        timeWallInfos.append(newTimeWallInfo)
+
+    spreadInfos = []
+    for _ in range(F):
+        newSpreadInfo = list(map(int, input().split()))
+        spreadInfos.append(newSpreadInfo)
+
+        
 
 
-timeWallMatrix = makeTimeWallMatrix(timeWallInfos)
-print(getExitInTimeWall())
+
+    timeWallMatrix, timeWallStartPoint = makeTimeWallMatrix(timeWallInfos, M)
+
+    timeWallDest, mapStartPoint = getExitInTimeWall(N, mapMatrix, M)
+    print(mapDest, timeWallStartPoint)
+    print(timeWallDest, mapStartPoint)
 # for row in timeWallMatrix:
 #     print(row)
 # print(moveInTimeWall((1, 5), (0, 1), timeWallMatrix))
 
-for row in mapMatrix:
-    print(row)
+solution()
