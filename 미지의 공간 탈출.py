@@ -104,21 +104,27 @@ def getExitInTimeWall():
     global N, mapMatrix
 
     for i in range(N):
+        flag = 0
         for j in range(N):
             if mapMatrix[i][j] == 3:
+                flag = 1
                 timeWallStartPos = (i, j)
                 break
-
+        
+        if flag == 1:
+            break
+    print(timeWallStartPos)
 
     ##윗변, 아랫변 탐색
     for i in range(M):
-        upperPos = (timeWallStartPos[0] - 1, timeWallStartPos[1] - 1 + i)
-        downPos = (timeWallStartPos[0] + 1, timeWallStartPos[1] - 1 + i)
+        upperPos = (timeWallStartPos[0] - 1, timeWallStartPos[1] + i)
+        downPos = (timeWallStartPos[0] + M, timeWallStartPos[1] + i)
+
         if mapMatrix[upperPos[0]][upperPos[1]] == 0:
-            return upperPos, timeWallStartPos
+            return upperPos, (0, M + i)
         
         if mapMatrix[downPos[0]][downPos[1]] == 0:
-            return downPos, timeWallStartPos
+            return downPos, (3 * M - 1, M + i)
     
     ##좌변, 우변 탐색
     for i in range(M):
@@ -126,14 +132,11 @@ def getExitInTimeWall():
         rightPos = (timeWallStartPos[0] + i, timeWallStartPos[1] + M)
 
         if mapMatrix[leftPos[0]][leftPos[1]] == 0:
-            return leftPos, timeWallStartPos
+            return leftPos, (M + i, 0)
         
         if mapMatrix[rightPos[0]][rightPos[1]] == 0:
-            return rightPos, timeWallStartPos
-        
-def convert2Dto3DPos():
-    pass
-        
+            return rightPos, (M + i, 3 * M - 1)
+
     
 
 
@@ -142,3 +145,6 @@ print(getExitInTimeWall())
 # for row in timeWallMatrix:
 #     print(row)
 # print(moveInTimeWall((1, 5), (0, 1), timeWallMatrix))
+
+for row in mapMatrix:
+    print(row)
