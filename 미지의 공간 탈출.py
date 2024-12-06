@@ -3,15 +3,19 @@ def makeTimeWallMatrix(infos, M):
     matrix = [[-1 for _ in range(3 * M)] for _ in range(3 * M)]
 
     ## East
-    eastMatrix = []
+    eastMatrix = [[0 for _ in range(M)] for _ in range(M)]
     for i in range(0, M):
-        eastMatrix.append(infos[i])
-    matrix = applySmallMatrixToBigMatrix(matrix, eastMatrix, M ,2 * M, M)
+        newCol = infos[i]
+        for j in range(M):
+            eastMatrix[j][i] = newCol[M - j - 1]
+    matrix = applySmallMatrixToBigMatrix(matrix, eastMatrix, M , 2 * M, M)
 
     ## West
-    westMatrix = []
+    westMatrix = [[0 for _ in range(M)] for _ in range(M)]
     for i in range(M, 2 * M):
-        westMatrix.append(infos[i])
+        newCol = infos[i]
+        for j in range(M):
+            westMatrix[M - j - 1][2 * M - i - 1] = newCol[M - j - 1]
     matrix = applySmallMatrixToBigMatrix(matrix, westMatrix, M, 0, M)
 
     ## South
@@ -23,7 +27,8 @@ def makeTimeWallMatrix(infos, M):
     ## North
     northMatrix = []
     for i in range(3 * M, 4 * M):
-        northMatrix.append(infos[i])
+        northMatrix.insert(0, infos[i][::-1])
+
     matrix = applySmallMatrixToBigMatrix(matrix, northMatrix, 0, M, M)
 
     ## Center
@@ -189,7 +194,10 @@ def solution():
     print(turnInTimeWall)
     for visit in visited:
         print(visit)
-    print(moveInTimeWall((0, 3), (0, -1), timeWallMatrix, M))
+
+    for timeWall in timeWallMatrix:
+        print(timeWall)
+    # print(moveInTimeWall((0, 3), (0, -1), timeWallMatrix, M))
 # for row in timeWallMatrix:
 #     print(row)
 # print(moveInTimeWall((1, 5), (0, 1), timeWallMatrix))
