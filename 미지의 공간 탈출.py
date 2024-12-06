@@ -146,11 +146,11 @@ def bfsIn2d(startPos, dest, mapMatrix, depth, spreads):
             if mapMatrix[movedPos[0]][movedPos[1]] == 1 or mapMatrix[movedPos[0]][movedPos[1]] == 3:
                 continue
 
-            if not checkSpreads(movedPos, depth + 1, mapMatrix, spreads):
-                continue
-
             if movedPos == dest:
                 return depth + 1, visited
+            
+            if not checkSpreads(movedPos, depth + 1, mapMatrix, spreads):
+                continue
             
             visitedMatrix[movedPos[0]][movedPos[1]] = 1
             newNode = (movedPos, depth + 1, visited + [movedPos])
