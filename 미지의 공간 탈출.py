@@ -128,11 +128,11 @@ def bfsIn2d(startPos, dest, mapMatrix, depth, spreads):
     visitedMatrix = [[0 for _ in range(len(mapMatrix))] for _ in range(len(mapMatrix))]
     visitedMatrix[startPos[0]][startPos[1]] = 1
 
-    queue = [(startPos, depth)]
+    queue = [(startPos, depth, [startPos])]
 
     while queue:
         node = queue.pop(0)
-        pos, depth = node[0], node[1]
+        pos, depth, visited = node[0], node[1], node[2]
 
         for direction in directions:
             movedPos = (pos[0] + direction[0], pos[1] + direction[1])
@@ -143,20 +143,20 @@ def bfsIn2d(startPos, dest, mapMatrix, depth, spreads):
             if visitedMatrix[movedPos[0]][movedPos[1]] == 1:
                 continue
 
-            if mapMatrix[movedPos[0]][movedPos[1]] == 1:
+            if mapMatrix[movedPos[0]][movedPos[1]] == 1 or mapMatrix[movedPos[0]][movedPos[1]] == 3:
                 continue
 
-            if not checkSpreads(movedPos, depth, mapMatrix, spreads):
+            if not checkSpreads(movedPos, depth + 1, mapMatrix, spreads):
                 continue
 
             if movedPos == dest:
-                return depth + 1
+                return depth + 1, visited
             
             visitedMatrix[movedPos[0]][movedPos[1]] = 1
-            newNode = (movedPos, depth + 1)
+            newNode = (movedPos, depth + 1, visited + [movedPos])
             queue.append(newNode)
 
-    return -1
+    return -1, -1
 
 
 def checkSpreads(pos, depth, mapMatrix, spreads):
@@ -165,8 +165,9 @@ def checkSpreads(pos, depth, mapMatrix, spreads):
         spreadPos, directionIndex, spreadValue = (spread[0], spread[1]), spread[2], spread[3]
         spreadDirection = spreadDirections[directionIndex]
 
-        if [spreadDirection] != getDirection(spreadPos, pos):
+        if not ([spreadDirection] == getDirection(spreadPos, pos) or [] == getDirection(spreadPos, pos)):
             continue
+
 
         ##방향이 일치한 경우
         distance = getDistance(spreadPos, pos)
@@ -193,18 +194,18 @@ def checkSpreads(pos, depth, mapMatrix, spreads):
 
 
 def getDirection(start, end):
-    delta = (end[0] - start[0], end[1] - start[0])
+    delta = (end[0] - start[0], end[1] - start[1])
 
     if delta[0] == 0 and delta[1] == 0:
         return []
     
     if delta[0] == 0:
-        return [(0, delta[1] / abs(delta[1]))]
+        return [(0, int(delta[1] / abs(delta[1])))]
     
     if delta[1] == 0:
-        return [(delta[0] / abs(delta[0]), 0)]
+        return [(int((delta[0] / abs(delta[0]))), 0)]
     
-    return [(delta[0] / abs(delta[0]), delta[1] / abs(delta[1]))]
+    return [(int((delta[0] / abs(delta[0]))), 0), (0, int(delta[1] / abs(delta[1])))]
 
 def getDistance(pos1, pos2):
     return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
@@ -284,7 +285,7 @@ def solution():
     timeWallStartPoint = (timeWallStartPoint[0] + M, timeWallStartPoint[1] + M)
 
     turnInTimeWall = bfsInTimeWall(timeWallStartPoint, timeWallDest, timeWallMatrix, M)
-    result = bfsIn2d(mapStartPoint, mapDest, mapMatrix, turnInTimeWall, spreadInfos)
+    turnInTimeWall += 1
+    result, visited = bfsIn2d(mapStartPoint, mapDest, mapMatrix, turnInTimeWall, spreadInfos)
     print(result)
-
 solution()
