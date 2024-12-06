@@ -60,11 +60,11 @@ def bfsInTimeWall(startPoint, dest, timeWallMatrix, M):
     visitedMatrix = [[0 for _ in range(3 * M)] for _ in range(3 * M)]
     visitedMatrix[startPoint[0]][startPoint[1]] = 1
 
-    queue = [(startPoint, 0, [startPoint])]
+    queue = [(startPoint, 0)]
 
     while queue:
         node = queue.pop(0)
-        pos, depth, visited = node[0], node[1], node[2]
+        pos, depth = node[0], node[1]
 
         for i in range(4):
             direction = directions[i]
@@ -81,13 +81,13 @@ def bfsInTimeWall(startPoint, dest, timeWallMatrix, M):
                 continue
 
             if movedPos == dest:
-                return depth + 1, visited
+                return depth + 1
             
             visitedMatrix[movedPos[0]][movedPos[1]] = 1
-            newNode = (movedPos, depth + 1, visited + [movedPos])
+            newNode = (movedPos, depth + 1)
             queue.append(newNode)
 
-    return -1, visitedMatrix
+    return -1
 
 
 
@@ -122,6 +122,99 @@ def checkIndexInTimeWallMatrix(pos, M):
         return True
     
     return False
+
+def bfsIn2d(startPos, dest, mapMatrix, depth, spreads):
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    visitedMatrix = [[0 for _ in range(len(mapMatrix))] for _ in range(len(mapMatrix))]
+    visitedMatrix[startPos[0]][startPos[1]] = 1
+
+    queue = [(startPos, depth)]
+
+    while queue:
+        node = queue.pop(0)
+        pos, depth = node[0], node[1]
+
+        for direction in directions:
+            movedPos = (pos[0] + direction[0], pos[1] + direction[1])
+
+            if not checkIndexInMapMatrix(movedPos, len(mapMatrix)):
+                continue
+
+            if visitedMatrix[movedPos[0]][movedPos[1]] == 1:
+                continue
+
+            if mapMatrix[movedPos[0]][movedPos[1]] == 1:
+                continue
+
+            if not checkSpreads(movedPos, depth, mapMatrix, spreads):
+                continue
+
+            if movedPos == dest:
+                return depth + 1
+            
+            visitedMatrix[movedPos[0]][movedPos[1]] = 1
+            newNode = (movedPos, depth + 1)
+            queue.append(newNode)
+
+    return -1
+
+
+def checkSpreads(pos, depth, mapMatrix, spreads):
+    spreadDirections = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+    for spread in spreads:
+        spreadPos, directionIndex, spreadValue = (spread[0], spread[1]), spread[2], spread[3]
+        spreadDirection = spreadDirections[directionIndex]
+
+        if [spreadDirection] != getDirection(spreadPos, pos):
+            continue
+
+        ##방향이 일치한 경우
+        distance = getDistance(spreadPos, pos)
+
+        if depth // spreadValue < distance:
+            continue
+
+        moved = 0
+        flag = 0
+        while moved < distance:
+            moved +=1
+
+            movedPos = (spreadPos[0] + moved * spreadDirection[0], spreadPos[1] + moved * spreadDirection[1])
+            if mapMatrix[movedPos[0]][movedPos[1]] == 1:
+                flag = 1
+                break
+        
+        if flag == 1:
+            continue
+
+        return False
+    
+    return True
+
+
+def getDirection(start, end):
+    delta = (end[0] - start[0], end[1] - start[0])
+
+    if delta[0] == 0 and delta[1] == 0:
+        return []
+    
+    if delta[0] == 0:
+        return [(0, delta[1] / abs(delta[1]))]
+    
+    if delta[1] == 0:
+        return [(delta[0] / abs(delta[0]), 0)]
+    
+    return [(delta[0] / abs(delta[0]), delta[1] / abs(delta[1]))]
+
+def getDistance(pos1, pos2):
+    return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
+
+def checkIndexInMapMatrix(pos, N):
+    if 0 <= pos[0] < N and 0 <= pos[1] < N:
+        return True
+    
+    return False
+
 
 def getExitInTimeWall(N, mapMatrix, M):
     for i in range(N):
@@ -190,16 +283,8 @@ def solution():
     mapStartPoint, timeWallDest = getExitInTimeWall(N, mapMatrix, M)
     timeWallStartPoint = (timeWallStartPoint[0] + M, timeWallStartPoint[1] + M)
 
-    turnInTimeWall, visited = bfsInTimeWall(timeWallStartPoint, timeWallDest, timeWallMatrix, M)
-    print(turnInTimeWall)
-    for visit in visited:
-        print(visit)
-
-    for timeWall in timeWallMatrix:
-        print(timeWall)
-    # print(moveInTimeWall((0, 3), (0, -1), timeWallMatrix, M))
-# for row in timeWallMatrix:
-#     print(row)
-# print(moveInTimeWall((1, 5), (0, 1), timeWallMatrix))
+    turnInTimeWall = bfsInTimeWall(timeWallStartPoint, timeWallDest, timeWallMatrix, M)
+    result = bfsIn2d(mapStartPoint, mapDest, mapMatrix, turnInTimeWall, spreadInfos)
+    print(result)
 
 solution()
