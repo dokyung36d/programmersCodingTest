@@ -27,10 +27,11 @@ def solution():
             userList = process200(command, userList)
 
         elif len(command) == 2:
-            process300(command, beltDict, userDict)
+            beltDict = process300(command, userList, beltDict, L)
 
-    print(beltDict)
-    print(visitTimeDict)
+        print(beltDict)
+
+    print(userList)
 
 def process100(commandList, beltDict, visitTimeDict, L):
     time, place, name = int(commandList[1]), int(commandList[2]), commandList[3]
@@ -39,42 +40,75 @@ def process100(commandList, beltDict, visitTimeDict, L):
 
     timeGap = visitedTime - time
     placeWhenUserVisited = (place + timeGap) % L
+    timeToUserPos = calculateGap(visitedPlace, placeWhenUserVisited, L)
 
     if len(beltDict[name]) == 0:
-        beltDict[name] = [(placeWhenUserVisited, time)]
+        beltDict[name] = [(timeToUserPos, time)]
         return beltDict
     
-    index = bisect.bisect_left(beltDict[name], (placeWhenUserVisited, time))
-    beltDict[name].insert(index, (placeWhenUserVisited, time))
+    index = bisect.bisect_left(beltDict[name], (timeToUserPos, time))
+    beltDict[name].insert(index, (timeToUserPos, time))
 
     return beltDict
 
 
 def process200(commandList, userList):
-    time, place, name, n = int(commandList[0]), int(commandList[1]), commandList[3], int(commandList[4])
+    time, place, name, n = int(commandList[1]), int(commandList[2]), commandList[3], int(commandList[4])
     userList.append((time, place, name, n))
 
     return userList
 
-def process300(commandList, userList, beltDict):
+def process300(commandList, userList, beltDict, L):
     time = int(commandList[1])
-    totalUser = 0
-    totalMenus = 0
 
-    for user in userList:
-        numUser, numMenus = checkStatusUserInTime(user, time, beltDict)
+    for i in range(len(userList) - 1, -1, -1):
+        user = userList[i]
+        userOuted, numAteMenus, beltDict = checkStatusUserInTime(user, time, beltDict, L)
 
-        totalUser += numUser
-        totalMenus += numMenus
+        if userOuted == 1:
+            userList.pop(i)
+            continue
 
-    return totalUser, totalMenus
+        userList[i] = (user[0], user[1], user[2], user[3] - numAteMenus)
+
+    return beltDict
 
 def checkStatusUserInTime(user, checkTime, beltDict, L):
-    userVisitedTime, userVisitedPlace, userName, userNum = user[0], user[1], user[2], user[3]
+    userVisitedTime, userVisitedPlace, userName, MaxNumUserEat = user[0], user[1], user[2], user[3]
 
-    startIndex = bisect.bisect_left(beltDict[userName], userVisitedPlace)
+    numAteMenu = 0
+    userOuted = 0
+
+    ## 손님이 방문하기 전이면 의미 없음
+    if userVisitedTime > checkTime:
+        return 0, 0
+    
+    allowedTime = checkTime - userVisitedTime
+
+    ateMenuIndices = []    
     for i in range(len(beltDict[userName])):
-        currentPlace = beltDict[startIndex - i]
+        timeToSpent = beltDict[userName][i][0]
+
+        if timeToSpent > allowedTime:
+            break
+
+        numAteMenu += 1
+        ateMenuIndices.append(i)
+        if numAteMenu >= MaxNumUserEat:
+            break
+
+    for i in range(len(ateMenuIndices) - 1, -1, -1):
+        beltDict[userName].pop(ateMenuIndices[i])
+    
+    if len(beltDict[userName]) == 0:
+        userOuted = 1
+        del beltDict[userName]
+
+    
+    return userOuted, numAteMenu, beltDict
+
+        
+
 
 def calculateGap(start, end, length):
     if start >= end:
@@ -83,5 +117,5 @@ def calculateGap(start, end, length):
     return (start - 0) + (length - end)
 
 
-# solution()
-print(calculateGap(2, 2, 5))
+solution()
+print(calculateGap(3, 1, 5))
