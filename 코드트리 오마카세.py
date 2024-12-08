@@ -51,16 +51,18 @@ def process100(commandList, beltDict, visitTimeDict, L):
         timeGap = visitedTime - time
         placeWhenUserVisited = (place + timeGap) % L
         timeToUserPos = calculateGap(visitedPlace, placeWhenUserVisited, L)
+        accessTime = visitedTime + timeToUserPos
 
     else:
         timeToUserPos = calculateGap(visitedPlace, place, L)
+        accessTime = time + timeToUserPos
 
     if len(beltDict[name]) == 0:
-        beltDict[name] = [(timeToUserPos, time)]
+        beltDict[name] = [accessTime]
         return beltDict
     
-    index = bisect.bisect_left(beltDict[name], (timeToUserPos, time))
-    beltDict[name].insert(index, (timeToUserPos, time))
+    index = bisect.bisect_left(beltDict[name], accessTime)
+    beltDict[name].insert(index, accessTime)
 
     return beltDict
 
@@ -103,16 +105,20 @@ def checkStatusUserInTime(user, checkTime, beltDict, L):
 
     ateMenuIndices = []    
     for i in range(len(beltDict[userName])):
-        timeToSpent = beltDict[userName][i][0]
-        menuArrivedTime = beltDict[userName][i][1]
+        # timeToSpent = beltDict[userName][i][0]
+        # menuArrivedTime = beltDict[userName][i][1]
 
-        if userVisitedTime >= menuArrivedTime:
-            allowedTime = checkTime - userVisitedTime
-        else:
-            allowedTime = checkTime - menuArrivedTime
+        # if userVisitedTime >= menuArrivedTime:
+        #     allowedTime = checkTime - userVisitedTime
+        # else:
+        #     allowedTime = checkTime - menuArrivedTime
 
-        if timeToSpent > allowedTime:
-            continue
+        # if timeToSpent > allowedTime:
+        #     
+        accessTime = beltDict[userName][i]
+        if checkTime < accessTime:
+            break
+
 
         numAteMenu += 1
         ateMenuIndices.append(i)
