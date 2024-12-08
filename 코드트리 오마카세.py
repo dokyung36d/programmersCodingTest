@@ -5,7 +5,7 @@ def solution():
     L, Q = map(int, input().split())
 
     beltDict = defaultdict(list)
-    userDict = defaultdict(list)
+    ateDict = defaultdict(int)
     visitTimeDict = {}
     commands = []
 
@@ -31,7 +31,7 @@ def solution():
             numUser += 1
 
         elif len(command) == 2:
-            beltDict, numUserOuted, numUserAte = process300(command, userList, beltDict, L)
+            beltDict, numUserOuted, numUserAte = process300(command, userList, beltDict, L, ateDict)
             numUser -= numUserOuted
             numMenu -= numUserAte
 
@@ -73,14 +73,14 @@ def process200(commandList, userList):
 
     return userList
 
-def process300(commandList, userList, beltDict, L):
+def process300(commandList, userList, beltDict, L, ateDict):
     time = int(commandList[1])
     totalNumUserOuted = 0
     totalNumUserAte = 0
 
     for i in range(len(userList) - 1, -1, -1):
         user = userList[i]
-        userOuted, numAteMenus, beltDict = checkStatusUserInTime(user, time, beltDict, L)
+        userOuted, numAteMenus, beltDict = checkStatusUserInTime(user, time, beltDict, L, ateDict)
         totalNumUserOuted += userOuted
         totalNumUserAte += numAteMenus
 
@@ -92,48 +92,22 @@ def process300(commandList, userList, beltDict, L):
 
     return beltDict, totalNumUserOuted, totalNumUserAte
 
-def checkStatusUserInTime(user, checkTime, beltDict, L):
+def checkStatusUserInTime(user, checkTime, beltDict, L, ateDict):
     userVisitedTime, userVisitedPlace, userName, maxNumUserEat = user[0], user[1], user[2], user[3]
-
-    numAteMenu = 0
-    userOuted = 0
 
     ## 손님이 방문하기 전이면 의미 없음
     if userVisitedTime > checkTime:
         return 0, 0, beltDict
+
+    index = bisect.bisect_right(beltDict[userName], checkTime)
+    numEat = index - ateDict[userName]
+    if numEat < maxNumUserEat:
+        ateDict[userName] += numEat
+        return 0, numEat, beltDict
     
-
-    ateMenuIndices = []    
-    for i in range(len(beltDict[userName])):
-        # timeToSpent = beltDict[userName][i][0]
-        # menuArrivedTime = beltDict[userName][i][1]
-
-        # if userVisitedTime >= menuArrivedTime:
-        #     allowedTime = checkTime - userVisitedTime
-        # else:
-        #     allowedTime = checkTime - menuArrivedTime
-
-        # if timeToSpent > allowedTime:
-        #     
-        accessTime = beltDict[userName][i]
-        if checkTime < accessTime:
-            break
-
-
-        numAteMenu += 1
-        ateMenuIndices.append(i)
-        if numAteMenu >= maxNumUserEat:
-            break
-
-    for i in range(len(ateMenuIndices) - 1, -1, -1):
-        beltDict[userName].pop(ateMenuIndices[i])
-    
-    if numAteMenu == maxNumUserEat:
-        userOuted = 1
-        del beltDict[userName]
-
-    
-    return userOuted, numAteMenu, beltDict
+    # beltDict[userName] = beltDict[userName][:maxNumUserEat]
+    del beltDict[userName]
+    return 1, maxNumUserEat, beltDict
 
         
 
