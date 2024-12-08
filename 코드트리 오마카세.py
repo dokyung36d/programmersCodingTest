@@ -47,9 +47,13 @@ def process100(commandList, beltDict, visitTimeDict, L):
 
     visitedTime, visitedPlace =  visitTimeDict[name][0], visitTimeDict[name][1]
 
-    timeGap = visitedTime - time
-    placeWhenUserVisited = (place + timeGap) % L
-    timeToUserPos = calculateGap(visitedPlace, placeWhenUserVisited, L)
+    if visitedTime >= time:
+        timeGap = visitedTime - time
+        placeWhenUserVisited = (place + timeGap) % L
+        timeToUserPos = calculateGap(visitedPlace, placeWhenUserVisited, L)
+
+    else:
+        timeToUserPos = calculateGap(visitedPlace, place, L)
 
     if len(beltDict[name]) == 0:
         beltDict[name] = [(timeToUserPos, time)]
@@ -87,33 +91,38 @@ def process300(commandList, userList, beltDict, L):
     return beltDict, totalNumUserOuted, totalNumUserAte
 
 def checkStatusUserInTime(user, checkTime, beltDict, L):
-    userVisitedTime, userVisitedPlace, userName, MaxNumUserEat = user[0], user[1], user[2], user[3]
+    userVisitedTime, userVisitedPlace, userName, maxNumUserEat = user[0], user[1], user[2], user[3]
 
     numAteMenu = 0
     userOuted = 0
 
     ## 손님이 방문하기 전이면 의미 없음
     if userVisitedTime > checkTime:
-        return 0, 0
+        return 0, 0, beltDict
     
-    allowedTime = checkTime - userVisitedTime
 
     ateMenuIndices = []    
     for i in range(len(beltDict[userName])):
         timeToSpent = beltDict[userName][i][0]
+        menuArrivedTime = beltDict[userName][i][1]
+
+        if userVisitedTime >= menuArrivedTime:
+            allowedTime = checkTime - userVisitedTime
+        else:
+            allowedTime = checkTime - menuArrivedTime
 
         if timeToSpent > allowedTime:
             break
 
         numAteMenu += 1
         ateMenuIndices.append(i)
-        if numAteMenu >= MaxNumUserEat:
+        if numAteMenu >= maxNumUserEat:
             break
 
     for i in range(len(ateMenuIndices) - 1, -1, -1):
         beltDict[userName].pop(ateMenuIndices[i])
     
-    if len(beltDict[userName]) == 0:
+    if numAteMenu == maxNumUserEat:
         userOuted = 1
         del beltDict[userName]
 
