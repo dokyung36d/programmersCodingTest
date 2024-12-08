@@ -112,7 +112,7 @@ def checkStatusUserInTime(user, checkTime, beltDict, L):
             allowedTime = checkTime - menuArrivedTime
 
         if timeToSpent > allowedTime:
-            break
+            continue
 
         numAteMenu += 1
         ateMenuIndices.append(i)
