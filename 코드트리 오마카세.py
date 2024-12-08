@@ -6,28 +6,29 @@ def solution():
 
     beltDict = defaultdict(list)
     ateDict = defaultdict(int)
-    visitTimeDict = {}
+    visitTimeDict = defaultdict(int)
     commands = []
 
-    for _ in range(Q):
-        commandList = list(input().split())
+    # for _ in range(Q):
+    #     commandList = list(input().split())
 
-        if commandList[0] == "200":
-            visitTimeDict[commandList[3]] = (int(commandList[1]), int(commandList[2]))
+    #     if commandList[0] == "200":
+    #         visitTimeDict[commandList[3]] = (int(commandList[1]), int(commandList[2]))
 
-        commands.append(commandList)
+    #     commands.append(commandList)
 
     userList = []
     numUser = 0
     numMenu = 0
-    
-    for command in commands:
+    for _ in range(Q):
+        command = list(input().split())
+
         if len(command) == 4:
             beltDict = process100(command, beltDict, visitTimeDict, L)
             numMenu += 1
 
         elif len(command) == 5:
-            userList = process200(command, userList)
+            userList, beltDict, visitTimeDict = process200(command, userList, beltDict, visitTimeDict, L)
             numUser += 1
 
         elif len(command) == 2:
@@ -44,6 +45,10 @@ def solution():
 
 def process100(commandList, beltDict, visitTimeDict, L):
     time, place, name = int(commandList[1]), int(commandList[2]), commandList[3]
+
+    if visitTimeDict[name] == 0:
+        beltDict[name].append((time, place))
+        return beltDict
 
     visitedTime, visitedPlace =  visitTimeDict[name][0], visitTimeDict[name][1]
 
@@ -67,11 +72,13 @@ def process100(commandList, beltDict, visitTimeDict, L):
     return beltDict
 
 
-def process200(commandList, userList):
+def process200(commandList, userList, beltDict, visitTimeDict, L):
     time, place, name, n = int(commandList[1]), int(commandList[2]), commandList[3], int(commandList[4])
     userList.append((time, place, name, n))
 
-    return userList
+    visitTimeDict[name] = (time, place)
+    beltDict = updateBeltDict(visitTimeDict, beltDict, name, L)
+    return userList, beltDict, visitTimeDict
 
 def process300(commandList, userList, beltDict, L, ateDict):
     time = int(commandList[1])
@@ -118,6 +125,33 @@ def calculateGap(start, end, length):
     
     return (start - 0) + (length - end)
 
+def updateBeltDict(visitTimeDict, beltDict, name, L):
+    visitedTime, visitedPlace = visitTimeDict[name][0], visitTimeDict[name][1]
 
+    updatedList = []
+    for i in range(len(beltDict[name])):
+        time, place =beltDict[name][i][0], beltDict[name][i][1]
+
+        if visitedTime >= time:
+            timeGap = visitedTime - time
+            placeWhenUserVisited = (place + timeGap) % L
+            timeToUserPos = calculateGap(visitedPlace, placeWhenUserVisited, L)
+            accessTime = visitedTime + timeToUserPos
+
+        else:
+            timeToUserPos = calculateGap(visitedPlace, place, L)
+            accessTime = time + timeToUserPos
+
+
+        if len(updatedList) == 0:
+            updatedList.append(accessTime)
+            continue
+        
+        index = bisect.bisect_left(updatedList, accessTime)
+        updatedList.insert(index, accessTime)
+
+    beltDict[name] = updatedList
+
+    return beltDict
 solution()
 # print(calculateGap(3, 1, 5))
