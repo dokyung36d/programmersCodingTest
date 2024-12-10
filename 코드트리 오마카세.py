@@ -146,4 +146,4 @@ def calculateGap(start, end, length):
 
 
 solution()
-# print(calculateGap(3, 1, 5))
+print(calculateGap(3, 1, 5))
