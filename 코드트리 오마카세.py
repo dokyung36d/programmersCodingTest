@@ -1,5 +1,6 @@
 from collections import defaultdict
 import bisect
+import heapq
 
 def solution():
     L, Q = map(int, input().split())
@@ -17,21 +18,22 @@ def solution():
 
         commands.append(commandList)
 
-    userList = []
+    menuHeap = []
+    userDict = {}
     numUser = 0
     numMenu = 0
     
     for command in commands:
         if len(command) == 4:
-            beltDict = process100(command, beltDict, visitTimeDict, L)
+            menuHeap = process100(command, menuHeap, visitTimeDict, L)
             numMenu += 1
 
         elif len(command) == 5:
-            userList = process200(command, userList)
+            userDict = process200(command, userDict)
             numUser += 1
 
         elif len(command) == 2:
-            beltDict, numUserOuted, numUserAte = process300(command, userList, beltDict, L)
+            numUserOuted, numUserAte, menuHeap = process300(command, userDict, menuHeap)
             numUser -= numUserOuted
             numMenu -= numUserAte
 
@@ -42,7 +44,7 @@ def solution():
 
     # print(userList)
 
-def process100(commandList, beltDict, visitTimeDict, L):
+def process100(commandList, menuHeap, visitTimeDict, L):
     time, place, name = int(commandList[1]), int(commandList[2]), commandList[3]
 
     visitedTime, visitedPlace =  visitTimeDict[name][0], visitTimeDict[name][1]
@@ -57,83 +59,62 @@ def process100(commandList, beltDict, visitTimeDict, L):
         timeToUserPos = calculateGap(visitedPlace, place, L)
         accessTime = time + timeToUserPos
 
-    if len(beltDict[name]) == 0:
-        beltDict[name] = [accessTime]
-        return beltDict
+    heapq.heappush(menuHeap, (accessTime, name))
+
+    # if len(beltDict[name]) == 0:
+    #     beltDict[name] = [accessTime]
+    #     return beltDict
     
-    index = bisect.bisect_left(beltDict[name], accessTime)
-    beltDict[name].insert(index, accessTime)
+    # index = bisect.bisect_left(beltDict[name], accessTime)
+    # beltDict[name].insert(index, accessTime)
 
-    return beltDict
+    return menuHeap
 
 
-def process200(commandList, userList):
+def process200(commandList, userDict):
     time, place, name, n = int(commandList[1]), int(commandList[2]), commandList[3], int(commandList[4])
-    userList.append((time, place, name, n))
+    userDict[name] = n
 
-    return userList
+    return userDict
 
-def process300(commandList, userList, beltDict, L):
+def process300(commandList, userDict, menuHeap):
     time = int(commandList[1])
-    totalNumUserOuted = 0
-    totalNumUserAte = 0
+    totalNumUserOuted, totalNumUserAte, menuHeap = checkStatusUserInTime(time, menuHeap, userDict)
 
-    for i in range(len(userList) - 1, -1, -1):
-        user = userList[i]
-        userOuted, numAteMenus, beltDict = checkStatusUserInTime(user, time, beltDict, L)
-        totalNumUserOuted += userOuted
-        totalNumUserAte += numAteMenus
+    # for i in range(len(userList) - 1, -1, -1):
+    #     user = userList[i]
+    #     userOuted, numAteMenus, beltDict = checkStatusUserInTime(user, time, beltDict, L)
+    #     totalNumUserOuted += userOuted
+    #     totalNumUserAte += numAteMenus
 
-        if userOuted == 1:
-            userList.pop(i)
-            continue
+    #     if userOuted == 1:
+    #         userList.pop(i)
+    #         continue
 
-        userList[i] = (user[0], user[1], user[2], user[3] - numAteMenus)
+    #     userList[i] = (user[0], user[1], user[2], user[3] - numAteMenus)
 
-    return beltDict, totalNumUserOuted, totalNumUserAte
+    return totalNumUserOuted, totalNumUserAte, menuHeap
 
-def checkStatusUserInTime(user, checkTime, beltDict, L):
-    userVisitedTime, userVisitedPlace, userName, maxNumUserEat = user[0], user[1], user[2], user[3]
-
+def checkStatusUserInTime(checkTime, menuHeap, userDict):
     numAteMenu = 0
-    userOuted = 0
+    numUserOuted = 0
 
-    ## 손님이 방문하기 전이면 의미 없음
-    if userVisitedTime > checkTime:
-        return 0, 0, beltDict
-    
+    while menuHeap:
+        menuArrivedTime, menuOwner = heapq.heappop(menuHeap)
 
-    ateMenuIndices = []    
-    for i in range(len(beltDict[userName])):
-        # timeToSpent = beltDict[userName][i][0]
-        # menuArrivedTime = beltDict[userName][i][1]
-
-        # if userVisitedTime >= menuArrivedTime:
-        #     allowedTime = checkTime - userVisitedTime
-        # else:
-        #     allowedTime = checkTime - menuArrivedTime
-
-        # if timeToSpent > allowedTime:
-        #     
-        accessTime = beltDict[userName][i]
-        if checkTime < accessTime:
+        if menuArrivedTime > checkTime:
+            heapq.heappush(menuHeap, (menuArrivedTime, menuOwner))
             break
-
 
         numAteMenu += 1
-        ateMenuIndices.append(i)
-        if numAteMenu >= maxNumUserEat:
-            break
+        userDict[menuOwner] -= 1
 
-    for i in range(len(ateMenuIndices) - 1, -1, -1):
-        beltDict[userName].pop(ateMenuIndices[i])
-    
-    if numAteMenu == maxNumUserEat:
-        userOuted = 1
-        del beltDict[userName]
+        if userDict[menuOwner] == 0:
+            numUserOuted += 1
+
 
     
-    return userOuted, numAteMenu, beltDict
+    return numUserOuted, numAteMenu, menuHeap
 
         
 
@@ -146,4 +127,4 @@ def calculateGap(start, end, length):
 
 
 solution()
-print(calculateGap(3, 1, 5))
+# print(calculateGap(3, 1, 5))
