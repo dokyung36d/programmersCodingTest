@@ -14,11 +14,35 @@ def solution():
             value = newRow[j]
             if value == 0:
                 continue
+            attackNode, defenseNode = makeAttackDefenseHeapNode((i, j), 0, value)
 
-            heapq.heappush(cannonAttackHeap, (value, 0, -(i + j), -j))
-            heapq.heappush(cannonDefenseHeap, (-value, 0, i + j,  j))
+            heapq.heappush(cannonAttackHeap, attackNode)
+            heapq.heappush(cannonDefenseHeap, defenseNode)
 
-    print(lazerAttack((0, 1), (2, 3), N, M, mapMatrix))
+
+    for i in range(1, 1 + 1):
+        attacker = heapq.heappop(cannonAttackHeap)
+        attackerPos = attacker[-1]
+        mapMatrix[attackerPos[0]][attackerPos[1]] += (N + M)
+        power = mapMatrix[attackerPos[0]][attackerPos[1]]
+
+        defenser = heapq.heappop(cannonDefenseHeap)
+        defenserPos = defenser[-1]
+
+        sidePoses = lazerAttack(attackerPos, defenserPos, N, M, mapMatrix)
+        if sidePoses == []:
+            sidePoses = bombAttack(defenserPos, N, M, mapMatrix)
+
+
+        mapMatrix = applyEffectToMapMatrix(defenserPos, sidePoses, power, mapMatrix)
+
+
+        cannonAttackHeap, cannonDefenseHeap, mapMatrix = prepareCannon(cannonAttackHeap, cannonDefenseHeap, attackerPos, defenserPos, mapMatrix, i)
+        for row in mapMatrix:
+            print(row)
+
+    # print(lazerAttack((0, 1), (2, 3), N, M, mapMatrix))
+    # print(bombAttack((2, 3), N, M, mapMatrix))
 
 
 
@@ -43,7 +67,7 @@ def lazerAttack(attackerPos, defenserPos, N, M, mapMatrix):
                 continue
 
             if movedPos == defenserPos:
-                return visited[:] + [defenserPos]
+                return visited
 
             visitedMatrix[movedPos[0]][movedPos[1]] = 1
             queue.append((movedPos, visited + [movedPos]))
@@ -52,9 +76,64 @@ def lazerAttack(attackerPos, defenserPos, N, M, mapMatrix):
 
     
 
-def bombAttack(defenserPos):
+def bombAttack(defenserPos, N, M, mapMatrix):
+    sidePoses = []
     directions = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+
+    for direction in directions:
+        movedPos = move(defenserPos, direction, N, M)
+
+        if not checkMoveAvailable(movedPos, mapMatrix):
+            continue
+        sidePoses.append(movedPos)
     
+
+    return sidePoses
+
+def applyEffectToMapMatrix(defederPos, sidePoses, power, mapMatrix):
+    sidePower = power // 2
+    
+    mapMatrix[defederPos[0]][defederPos[1]] -= min(power, mapMatrix[defederPos[0]][defederPos[1]])
+
+    for sidePos in sidePoses:
+        mapMatrix[sidePos[0]][sidePos[1]] -= min(sidePower, mapMatrix[sidePos[0]][sidePos[1]])
+
+
+    return mapMatrix
+
+
+def prepareCannon(attackHeap, defenseHeap, attackedPos, defensedPos, mapMatrix, turn):
+    newAttackHeap = []
+    newDefenseHeap = []
+
+    while attackHeap:
+        node = heapq.heappop(attackHeap)
+        pos = node[-1]
+        prevAttack = node[1]
+
+        if mapMatrix[pos[0]][pos[1]] == 0:
+            continue
+
+        if pos != defensedPos:
+            mapMatrix[pos[0]][pos[1]] += 1
+
+        newAttackNode, newDefenseNode = makeAttackDefenseHeapNode(pos, prevAttack, mapMatrix[pos[0]][pos[1]])
+        heapq.heappush(newAttackHeap, newAttackNode)
+        heapq.heappush(newDefenseHeap, newDefenseNode)
+
+    newAttackNode, newDefenseNode = makeAttackDefenseHeapNode(attackedPos, turn, mapMatrix[attackedPos[0]][attackedPos[1]])
+    heapq.heappush(newAttackHeap, newAttackNode)
+    heapq.heappush(newDefenseHeap, newDefenseNode)
+
+
+    return newAttackHeap, newDefenseHeap, mapMatrix
+
+
+def makeAttackDefenseHeapNode(pos, prevAttack, value):
+    attackNode = (value, -prevAttack, -(pos[0] + pos[1]), -pos[1], pos)
+    defenseNode = (-value, prevAttack, pos[0] + pos[1], pos[1], pos)
+
+    return attackNode, defenseNode
 
 def move(pos, direction, N, M):
     movedPos = addTwoTuple(pos, direction)
