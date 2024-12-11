@@ -24,11 +24,17 @@ def solution():
     for i in range(1, K + 1):
         attacker = heapq.heappop(cannonAttackHeap)
         attackerPos = attacker[-1]
-        mapMatrix[attackerPos[0]][attackerPos[1]] += (N + M)
-        power = mapMatrix[attackerPos[0]][attackerPos[1]]
 
         defenser = heapq.heappop(cannonDefenseHeap)
         defenserPos = defenser[-1]
+
+        if attackerPos == defenserPos:
+            heapq.heappush(cannonAttackHeap, attacker)
+            heapq.heappush(cannonDefenseHeap, defenser)
+            continue
+
+        mapMatrix[attackerPos[0]][attackerPos[1]] += (N + M)
+        power = mapMatrix[attackerPos[0]][attackerPos[1]]
 
         sidePoses, sidePosDict = lazerAttack(attackerPos, defenserPos, N, M, mapMatrix)
         if sidePoses == []:
@@ -40,10 +46,11 @@ def solution():
 
         cannonAttackHeap, cannonDefenseHeap, mapMatrix = prepareCannon(cannonAttackHeap, cannonDefenseHeap, attackerPos, defenserPos, mapMatrix, i, sidePosDict)
 
-        # print(attacker, defenser)
-        # for row in mapMatrix:
-        #     print(row)
-        # print()
+        print(sidePoses)
+        print(attacker, defenser)
+        for row in mapMatrix:
+            print(row)
+        print()
     node = heapq.heappop(cannonDefenseHeap)
     print(-node[0])
 
@@ -54,7 +61,7 @@ def solution():
 
 def lazerAttack(attackerPos, defenserPos, N, M, mapMatrix):
     directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-    queue = [(attackerPos, [])]
+    queue = [(attackerPos, [attackerPos])]
 
     visitedMatrix = [[0 for _ in range(M)] for _ in range(N)]
     visitedMatrix[attackerPos[0]][attackerPos[1]] = 1
@@ -74,6 +81,7 @@ def lazerAttack(attackerPos, defenserPos, N, M, mapMatrix):
 
 
             if movedPos == defenserPos:
+                visited = visited[1:]
                 sidePosDict = makeSidePosDict(visited)
                 return visited, sidePosDict
 
