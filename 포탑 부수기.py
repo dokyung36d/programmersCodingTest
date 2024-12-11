@@ -32,7 +32,7 @@ def solution():
 
         sidePoses, sidePosDict = lazerAttack(attackerPos, defenserPos, N, M, mapMatrix)
         if sidePoses == []:
-            sidePoses, sidePosDict = bombAttack(defenserPos, N, M, mapMatrix)
+            sidePoses, sidePosDict = bombAttack(attackerPos, defenserPos, N, M, mapMatrix)
 
 
         mapMatrix = applyEffectToMapMatrix(defenserPos, sidePoses, power, mapMatrix)
@@ -40,9 +40,10 @@ def solution():
 
         cannonAttackHeap, cannonDefenseHeap, mapMatrix = prepareCannon(cannonAttackHeap, cannonDefenseHeap, attackerPos, defenserPos, mapMatrix, i, sidePosDict)
 
-        for row in mapMatrix:
-            print(row)
-        print()
+        # print(attacker, defenser)
+        # for row in mapMatrix:
+        #     print(row)
+        # print()
     node = heapq.heappop(cannonDefenseHeap)
     print(-node[0])
 
@@ -83,7 +84,7 @@ def lazerAttack(attackerPos, defenserPos, N, M, mapMatrix):
 
     
 
-def bombAttack(defenserPos, N, M, mapMatrix):
+def bombAttack(attackerPos, defenserPos, N, M, mapMatrix):
     sidePoses = []
     directions = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
     sidePosDict = defaultdict(int)
@@ -92,6 +93,9 @@ def bombAttack(defenserPos, N, M, mapMatrix):
         movedPos = move(defenserPos, direction, N, M)
 
         if not checkMoveAvailable(movedPos, mapMatrix):
+            continue
+        
+        if movedPos == attackerPos:
             continue
         sidePoses.append(movedPos)
         sidePosDict[movedPos] = 1
@@ -131,11 +135,9 @@ def prepareCannon(attackHeap, defenseHeap, attackedPos, defensedPos, mapMatrix, 
         if mapMatrix[pos[0]][pos[1]] == 0:
             continue
 
-        if sidePosDict[pos] == 1:
-            continue
-
-        if pos != defensedPos:
+        if sidePosDict[pos] != 1 and pos != defensedPos:
             mapMatrix[pos[0]][pos[1]] += 1
+
 
         newAttackNode, newDefenseNode = makeAttackDefenseHeapNode(pos, prevAttack, mapMatrix[pos[0]][pos[1]])
         heapq.heappush(newAttackHeap, newAttackNode)
