@@ -1,4 +1,5 @@
 import heapq
+from collections import defaultdict
 
 def solution():
     N, M, K = map(int, input().split())
@@ -20,7 +21,7 @@ def solution():
             heapq.heappush(cannonDefenseHeap, defenseNode)
 
 
-    for i in range(1, 1 + 1):
+    for i in range(1, K + 1):
         attacker = heapq.heappop(cannonAttackHeap)
         attackerPos = attacker[-1]
         mapMatrix[attackerPos[0]][attackerPos[1]] += (N + M)
@@ -29,17 +30,21 @@ def solution():
         defenser = heapq.heappop(cannonDefenseHeap)
         defenserPos = defenser[-1]
 
-        sidePoses = lazerAttack(attackerPos, defenserPos, N, M, mapMatrix)
+        sidePoses, sidePosDict = lazerAttack(attackerPos, defenserPos, N, M, mapMatrix)
         if sidePoses == []:
-            sidePoses = bombAttack(defenserPos, N, M, mapMatrix)
+            sidePoses, sidePosDict = bombAttack(defenserPos, N, M, mapMatrix)
 
 
         mapMatrix = applyEffectToMapMatrix(defenserPos, sidePoses, power, mapMatrix)
 
 
-        cannonAttackHeap, cannonDefenseHeap, mapMatrix = prepareCannon(cannonAttackHeap, cannonDefenseHeap, attackerPos, defenserPos, mapMatrix, i)
+        cannonAttackHeap, cannonDefenseHeap, mapMatrix = prepareCannon(cannonAttackHeap, cannonDefenseHeap, attackerPos, defenserPos, mapMatrix, i, sidePosDict)
+
         for row in mapMatrix:
             print(row)
+        print()
+    node = heapq.heappop(cannonDefenseHeap)
+    print(-node[0])
 
     # print(lazerAttack((0, 1), (2, 3), N, M, mapMatrix))
     # print(bombAttack((2, 3), N, M, mapMatrix))
@@ -66,19 +71,22 @@ def lazerAttack(attackerPos, defenserPos, N, M, mapMatrix):
             if visitedMatrix[movedPos[0]][movedPos[1]] == 1:
                 continue
 
+
             if movedPos == defenserPos:
-                return visited
+                sidePosDict = makeSidePosDict(visited)
+                return visited, sidePosDict
 
             visitedMatrix[movedPos[0]][movedPos[1]] = 1
             queue.append((movedPos, visited + [movedPos]))
 
-    return []
+    return [], defaultdict(int)
 
     
 
 def bombAttack(defenserPos, N, M, mapMatrix):
     sidePoses = []
     directions = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+    sidePosDict = defaultdict(int)
 
     for direction in directions:
         movedPos = move(defenserPos, direction, N, M)
@@ -86,9 +94,18 @@ def bombAttack(defenserPos, N, M, mapMatrix):
         if not checkMoveAvailable(movedPos, mapMatrix):
             continue
         sidePoses.append(movedPos)
+        sidePosDict[movedPos] = 1
     
 
-    return sidePoses
+    return sidePoses, sidePosDict
+
+def makeSidePosDict(sidePoses):
+    posDict = defaultdict(int)
+
+    for sidePos in sidePoses:
+        posDict[sidePos] = 1
+
+    return posDict
 
 def applyEffectToMapMatrix(defederPos, sidePoses, power, mapMatrix):
     sidePower = power // 2
@@ -102,7 +119,7 @@ def applyEffectToMapMatrix(defederPos, sidePoses, power, mapMatrix):
     return mapMatrix
 
 
-def prepareCannon(attackHeap, defenseHeap, attackedPos, defensedPos, mapMatrix, turn):
+def prepareCannon(attackHeap, defenseHeap, attackedPos, defensedPos, mapMatrix, turn, sidePosDict):
     newAttackHeap = []
     newDefenseHeap = []
 
@@ -112,6 +129,9 @@ def prepareCannon(attackHeap, defenseHeap, attackedPos, defensedPos, mapMatrix, 
         prevAttack = node[1]
 
         if mapMatrix[pos[0]][pos[1]] == 0:
+            continue
+
+        if sidePosDict[pos] == 1:
             continue
 
         if pos != defensedPos:
