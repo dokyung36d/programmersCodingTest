@@ -41,16 +41,16 @@ def solution():
             sidePoses, sidePosDict = bombAttack(attackerPos, defenserPos, N, M, mapMatrix)
 
 
-        mapMatrix = applyEffectToMapMatrix(defenserPos, sidePoses, power, mapMatrix)
+        mapMatrix = applyEffectToMapMatrix(attackerPos, defenserPos, sidePoses, power, mapMatrix)
 
 
         cannonAttackHeap, cannonDefenseHeap, mapMatrix = prepareCannon(cannonAttackHeap, cannonDefenseHeap, attackerPos, defenserPos, mapMatrix, i, sidePosDict)
 
-        print(sidePoses)
-        print(attacker, defenser)
-        for row in mapMatrix:
-            print(row)
-        print()
+        # print(sidePoses)
+        # print(attacker, defenser)
+        # for row in mapMatrix:
+        #     print(row)
+        # print()
     node = heapq.heappop(cannonDefenseHeap)
     print(-node[0])
 
@@ -81,7 +81,6 @@ def lazerAttack(attackerPos, defenserPos, N, M, mapMatrix):
 
 
             if movedPos == defenserPos:
-                visited = visited[1:]
                 sidePosDict = makeSidePosDict(visited)
                 return visited, sidePosDict
 
@@ -119,12 +118,15 @@ def makeSidePosDict(sidePoses):
 
     return posDict
 
-def applyEffectToMapMatrix(defederPos, sidePoses, power, mapMatrix):
+def applyEffectToMapMatrix(attackerPos, defederPos, sidePoses, power, mapMatrix):
     sidePower = power // 2
     
     mapMatrix[defederPos[0]][defederPos[1]] -= min(power, mapMatrix[defederPos[0]][defederPos[1]])
 
     for sidePos in sidePoses:
+        if sidePos == attackerPos:
+            continue
+
         mapMatrix[sidePos[0]][sidePos[1]] -= min(sidePower, mapMatrix[sidePos[0]][sidePos[1]])
 
 
@@ -138,12 +140,12 @@ def prepareCannon(attackHeap, defenseHeap, attackedPos, defensedPos, mapMatrix, 
     while attackHeap:
         node = heapq.heappop(attackHeap)
         pos = node[-1]
-        prevAttack = node[1]
+        prevAttack = -node[1]
 
         if mapMatrix[pos[0]][pos[1]] == 0:
             continue
 
-        if sidePosDict[pos] != 1 and pos != defensedPos:
+        if sidePosDict[pos] != 1 and pos != defensedPos and pos != attackedPos:
             mapMatrix[pos[0]][pos[1]] += 1
 
 
