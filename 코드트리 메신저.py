@@ -8,8 +8,9 @@ class Node:
         self.rightChild = rightChild
         self.on = on
         self.authority = authority
-        self.numAlarm = 0
+        self.numAlarm = 2
         self.authorityDict = defaultdict(int)
+        self.authorityDict[self.authority] = 1 
 
 
     def changeAuthority(self, newAuthority):
@@ -160,7 +161,9 @@ def turnOff(node : Node, treeNodeList):
 def subtractDictFromAnotherDict(dict1, dict2):
     numOffAlarm = 0
     for key in dict2.keys():
-        dict1[key] -= dict2[key]
+        if key <= 0:
+            continue
+        dict1[key - 1] -= dict2[key]
         numOffAlarm += dict2[key]
 
     return dict1, numOffAlarm
@@ -168,7 +171,9 @@ def subtractDictFromAnotherDict(dict1, dict2):
 def addDictFromAnotherDict(dict1, dict2):
     numOnAlarm = 0
     for key in dict2.keys():
-        dict1[key] += dict2[key]
+        if key <= 0:
+            continue
+        dict1[key - 1] += dict2[key]
         numOnAlarm += dict2[key]
 
     return dict1, numOnAlarm
