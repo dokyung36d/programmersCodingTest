@@ -68,7 +68,7 @@ def solution():
             process300(command, treeNodeList)
 
         elif command[0] == 400:
-            process400()
+            treeNodeList = process400(command, treeNodeList)
 
         elif command[0] == 500:
             result = process500(command, treeNodeList)
@@ -138,8 +138,44 @@ def process300(command, treeNodeList):
     
     return treeNodeList
 
-def process400():
-    pass
+def process400(command, treeNodeList):
+    firstNodePrimnaryKey, secondNodePrimaryKey = command[1], command[2]
+
+    firstNode = treeNodeList[firstNodePrimnaryKey]
+    secondNode = treeNodeList[secondNodePrimaryKey]
+
+    assert type(firstNode) == Node
+    assert type(secondNode) == Node
+
+    firstNodeOn = firstNode.on
+    secondNodeOn = secondNode.on
+
+    if firstNode.on == True:
+        treeNodeList = turnOff(firstNode, treeNodeList)
+    
+    if secondNode.on == True:
+        treeNodeList = turnOff(secondNode, treeNodeList)
+
+    firstNodeParent = firstNode.parent
+    secondNodeParent = secondNode.parent
+
+    assert type(firstNodeParent) == Node
+    assert type(secondNodeParent) == Node
+    firstNodeParent.setChild(secondNode)
+    secondNodeParent.setChild(firstNode)
+
+    firstNode.parent = secondNodeParent
+    secondNode.parent = firstNodeParent
+
+    if firstNodeOn == True:
+        treeNodeList = turnOn(firstNode, treeNodeList)
+
+    if secondNodeOn == True:
+        treeNodeList = turnOn(secondNode, treeNodeList)
+
+
+    return treeNodeList
+
 
 def process500(command, treeNodeList):
     primaryKey = command[1]
