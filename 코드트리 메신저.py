@@ -8,7 +8,7 @@ class Node:
         self.rightChild = rightChild
         self.on = on
         self.authority = authority
-        self.numAlarm = 2
+        self.numAlarm = 1
         self.authorityDict = defaultdict(int)
         self.authorityDict[self.authority] = 1 
 
@@ -65,15 +65,16 @@ def solution():
             treeNodeList = process200(command, treeNodeList)
 
         elif command[0] == 300:
-            process300()
+            process300(command, treeNodeList)
 
         elif command[0] == 400:
             process400()
 
         elif command[0] == 500:
-            process500()
+            result = process500(command, treeNodeList)
+            print(result)
 
-        print(treeNodeList)
+        # print(treeNodeList)
 
 def process100(N, command):
     treeNodeList = [0] * (N + 1)
@@ -113,14 +114,40 @@ def process200(command, treeNodeList):
 
     return treeNodeList
 
-def process300():
-    pass
+def process300(command, treeNodeList):
+    nodePrimaryKey, newAuthority = command[1], command[2]
+
+    node = treeNodeList[nodePrimaryKey]
+    prevAuthority = node.authority
+
+    assert type(node) == Node
+    while node.parent != None:
+        if prevAuthority >= 0:
+            node.authorityDict[prevAuthority] -= 1
+            prevAuthority -= 1
+            node.numAlarm -= 1
+
+        if newAuthority >= 0:
+            node.authorityDict[newAuthority] += 1
+            newAuthority -= 1
+            node.numAlarm += 1
+        
+        treeNodeList[node.primaryKey] = node
+
+        node = node.parent
+    
+    return treeNodeList
 
 def process400():
     pass
 
-def process500():
-    pass
+def process500(command, treeNodeList):
+    primaryKey = command[1]
+
+    node = treeNodeList[primaryKey]
+    assert type(node) == Node
+
+    return node.numAlarm - 1
 
 def turnOn(node : Node, treeNodeList):
     nodeAuthorityDict = node.authorityDict
