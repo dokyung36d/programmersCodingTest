@@ -1,5 +1,6 @@
 import sys
 from collections import defaultdict
+import heapq
 
 def solution():
     N, M = map(int, sys.stdin.readline().split())
@@ -14,12 +15,28 @@ def solution():
         start, end = map(int, sys.stdin.readline().split())
         snakeDict[start] = end
 
-    dpList = [10 ** 10] * 100 ##[0, 100)
-    dpList[0] = 0
-    for i in range(1, 100):
-        dpList = getMinimumRollDice(i + 1, dpList, ladderDict, snakeDict)
+    visitedDict = defaultdict(int)
+    visitedDict[1] = 1
+    queue = [(0, -1)] ##depth, -currentNum
 
-    return dpList[-1]
+    while queue:
+        node = heapq.heappop(queue)
+        depth, currentNum = node[0], -node[1]
+
+        for i in range(1, 7):
+            movedNum = currentNum + i
+            dest = getDest(movedNum, ladderDict, snakeDict)
+            if visitedDict[dest] != 0:
+                continue
+
+            if dest == 100:
+                return depth + 1
+
+            heapq.heappush(queue, (depth + 1, -dest))
+            visitedDict[dest] = 1
+
+
+
 
 
 def getMinimumRollDice(currentNum, dpList, ladderDict, snakeDict):
@@ -44,11 +61,8 @@ def getMinimumRollDice(currentNum, dpList, ladderDict, snakeDict):
 
     dest = getDest(currentNum, ladderDict, snakeDict)
     destIndex = dest - 1
-    if dest == currentNum:
-        dpList[currentNumIndex] = min(minNumRollDice, dpList[currentNumIndex])
 
-    elif dest > currentNum:
-        dpList[destIndex] = min(minNumRollDice, dpList[destIndex])
+    dpList[destIndex] = min(minNumRollDice, dpList[destIndex])
  
     return dpList
 
