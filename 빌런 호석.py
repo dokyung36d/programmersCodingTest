@@ -1,5 +1,4 @@
 import sys
-import copy
 from collections import defaultdict
 
 def solution():
@@ -7,37 +6,38 @@ def solution():
 
     X = changeIntToList(X, K)
     N = changeIntToList(N, K)
+    X = changeListToStr(X)
+    N = changeListToStr(N)
     # print(X)
     # print(N)
     numDict = defaultdict(int)
-    numDict[changeListToStr(X)] = 1
+    numDict[X] = 1
     answer = 0
 
     queue = [(X, P, 0)]
 
     while queue:
         node = queue.pop()
-        numList, numRemainSwap, changeIndex = node[0], node[1], node[2]
+        numStr, numRemainSwap, changeIndex = node[0], node[1], node[2]
 
         for i in range(10):
-            numSwap = countNumSwap(numList[changeIndex], i)
+            numSwap = countNumSwap(int(numStr[changeIndex]), i)
             if numSwap > numRemainSwap:
                 continue
-            numListChanged = copy.deepcopy(numList)
-            numListChanged[changeIndex] = i
+            numStrChanged = numStr[:changeIndex] + str(i) + numStr[changeIndex + 1:]
 
             if changeIndex < K - 1:
-                queue.append((numListChanged, numRemainSwap - numSwap, changeIndex + 1))
+                queue.append((numStrChanged, numRemainSwap - numSwap, changeIndex + 1))
 
-            if numDict[changeListToStr(numListChanged)] == 1:
+            if numDict[numStrChanged] == 1:
                 continue
 
-            if not list1BiggerThenList2(numListChanged, N):
-                if numListChanged == [0] * K:
+            if 1 <= int(numStrChanged) <= int(N):
+                if numStrChanged == "0" * K:
                     continue
                 # print(numListChanged)
                 answer += 1
-                numDict[changeListToStr(numListChanged)] = 1
+                numDict[numStrChanged] = 1
 
     return answer
 
