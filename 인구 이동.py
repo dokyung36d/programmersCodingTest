@@ -14,9 +14,9 @@ def solution():
 
     while True:
         matrix, peopleMoveFlag = getTurnResult(matrix, N, L, R)
-        for row in matrix:
-            print(row)
-        print()
+        # for row in matrix:
+        #     print(row)
+        # print()
         if peopleMoveFlag == 0:
             break
 
@@ -44,16 +44,15 @@ def getTurnResult(matrix, N, L, R):
 
 
 def bfs(matrix, currentPos, visitedMatrix, N, L, R):
-    maxVisited = []
+    # maxVisited = []
     directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
     peopleMoveFlag = 0
 
-    queue = [(currentPos, [currentPos])]
+    queue = [currentPos]
+    movedPosList = [currentPos]
     while queue:
-        node = queue.pop()
-        currentPos, visited = node[0], node[1]
+        currentPos = queue.pop()
 
-        movedPosList = []
         for direction in directions:
             movedPos = addTwoTuple(currentPos, direction)
             if not checkIndex(movedPos, N):
@@ -62,27 +61,33 @@ def bfs(matrix, currentPos, visitedMatrix, N, L, R):
             if not checkWhetherMoveAvailable(matrix, currentPos, movedPos, L, R):
                 continue
 
+            if movedPos in movedPosList:
+                continue
+
             if visitedMatrix[movedPos[0]][movedPos[1]] == 1:
                 continue
 
             visitedMatrix[movedPos[0]][movedPos[1]] = 1
             peopleMoveFlag = 1
-            updatedVisited = visited + [movedPos]
-            queue.append((movedPos, updatedVisited))
+            queue.append(movedPos)
+            movedPosList.append(movedPos)
 
-            if len(updatedVisited) > len(maxVisited):
-                maxVisited = updatedVisited
+            # if len(updatedVisited) > len(maxVisited):
+            #     maxVisited = updatedVisited
+    # for movedPos in movedPosList:
+    #     visitedMatrix[movedPos[0]][movedPos[1]] = 1
+
 
     if peopleMoveFlag == 0:
         return matrix, visitedMatrix, peopleMoveFlag
 
 
     totalPeople = 0
-    for visitedIndex in maxVisited:
+    for visitedIndex in movedPosList:
         totalPeople += matrix[visitedIndex[0]][visitedIndex[1]]
 
-    meanPeople = totalPeople // len(maxVisited)
-    for visitedIndex in maxVisited:
+    meanPeople = totalPeople // len(movedPosList)
+    for visitedIndex in movedPosList:
         matrix[visitedIndex[0]][visitedIndex[1]] = meanPeople
     return matrix, visitedMatrix, peopleMoveFlag
 
