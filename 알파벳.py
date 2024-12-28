@@ -14,33 +14,44 @@ def solution():
 
         matrix.append(newRow)
 
-    
-    
-    return dfs((0, 0), [matrix[0][0]], matrix)
-
-def dfs(pos, visited, matrix):
-    maxNumVisited = 0
+    stack = [((0, 0), [matrix[0][0]], [(0, 0)])]
     directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-    flag = 0
+    visitedDict = defaultdict(int)
+    answer = 0
 
-    for direction in directions:
-        movedPos = addTwoTuple(pos, direction)
-        if not checkIndex(movedPos, len(matrix), len(matrix[0])):
+    while stack:
+        node = stack.pop()
+        pos, visitedAlphabets, visitedPoses = node[0], node[1], node[2]
+        flag = 0
+
+        for direction in directions:
+            movedPos = addTwoTuple(pos, direction)
+            if not checkIndex(movedPos, len(matrix), len(matrix[0])):
+                continue
+
+            newAlphabet = matrix[movedPos[0]][movedPos[1]]
+            if newAlphabet in visitedAlphabets:
+                continue
+
+            if visitedDict[movedPos] == set(visitedAlphabets):
+                continue
+            
+            flag = 1
+            stack.append((movedPos, visitedAlphabets + [newAlphabet], visitedPoses + [movedPos]))
+
+
+        if flag == 1:
             continue
 
-        newAlphabet = matrix[movedPos[0]][movedPos[1]]
-        if newAlphabet in visited:
-            continue
+        ##더 이상 진행할 수 없는 경우
+        if len(visitedAlphabets) > answer:
+            answer = len(visitedAlphabets)
 
-        flag = 1
-        result = dfs(movedPos, visited + [newAlphabet], matrix)
-        if result >= maxNumVisited:
-            maxNumVisited = result
-
-    if flag == 0:
-        return len(visited)
+        for i in range(1, len(visitedPoses)):
+            visitedDict[visitedPoses[i]] = set(visitedAlphabets[:i])
     
-    return maxNumVisited
+    return answer
+
 
 
 def addTwoTuple(tuple1, tuple2):
