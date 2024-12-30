@@ -6,19 +6,18 @@ def solution():
     numList = list(map(int, sys.stdin.readline().split()))
     numDict = defaultdict(deque)
 
-    appearDict = defaultdict(int)
+    nextIndexDict = defaultdict(int)
     answer = 0
     startIndex = 0
     for i in range(N):
-        print(answer)
-        if appearDict[numList[i]] == 0:
+        if nextIndexDict[numList[i]] == 0:
             answer += i - startIndex + 1
-            appearDict[numList[i]] = i + 1
+            nextIndexDict[numList[i]] = i + 1
             continue
 
-        startIndex = max(startIndex, appearDict[numList[i]])
+        startIndex = max(startIndex, nextIndexDict[numList[i]])
         answer += i - startIndex + 1
-        appearDict[numList[i]] = i + 1
+        nextIndexDict[numList[i]] = i + 1
     return answer
 
 
